@@ -5,8 +5,10 @@
   "username": "root",
   "password": "password",
   "database": "wave",
-  "entities": [
-      "dist/**/*.entity{.ts,.js}"
-    ],
-  "synchronize": true
+  "entities": ["dist/**/*.entity.js"],
+  "synchronize": false,
+  "migrations": ["dist/migration/**/*.js"],
+  "cli": {
+    "migrationsDir": "migration/"
   }
+}

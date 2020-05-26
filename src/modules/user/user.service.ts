@@ -5,21 +5,26 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class UserService {
-    constructor(
-        @InjectRepository(User)
-        private usersRepository: Repository<User>,
-      ) {}
-    
-      findAll(): Promise<User[]> {
-        return this.usersRepository.find();
-      }
-    
-      findOne(id: number): Promise<User> {
-        return this.usersRepository.findOne(id);
-      }
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+  ) {}
 
-      findByEmailAndPassword({email, password}: {email: string, password: string}): Promise<User> {
-        console.log(email, password);
-        return this.usersRepository.findOne({ where: { email, password } });
-      }
+  findAll(): Promise<User[]> {
+    return this.usersRepository.find();
+  }
+
+  findOne(id: number): Promise<User> {
+    return this.usersRepository.findOne(id);
+  }
+
+  findByEmailAndPassword({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }): Promise<User> {
+    return this.usersRepository.findOne({ where: { email, password } });
+  }
 }

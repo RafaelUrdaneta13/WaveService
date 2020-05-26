@@ -4,9 +4,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'entities/user.entity';
 import { UserService } from './user.service';
 import { AuthModule } from '../auth/auth.module';
-
+import { JwtModule } from '@nestjs/jwt';
+import { jwtConstants } from 'src/helpers/constants';
 @Module({
-  imports: [forwardRef(() => AuthModule), TypeOrmModule.forFeature([User])],
+  imports: [
+    forwardRef(() => AuthModule), 
+    TypeOrmModule.forFeature([User]),
+    JwtModule.register({
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: '60s' },
+    }),
+  ],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService],
