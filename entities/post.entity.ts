@@ -1,20 +1,39 @@
-import { PrimaryGeneratedColumn, Entity, Column } from "typeorm";
+import {
+  PrimaryGeneratedColumn,
+  Entity,
+  Column,
+  ManyToMany,
+  JoinTable,
+  ManyToOne,
+  PrimaryColumn,
+} from 'typeorm';
+import { User } from './user.entity';
+import { Forum } from './forum.entity';
 
 @Entity()
-export class Post{
-    @PrimaryGeneratedColumn()
-    id: number;
+export class Post {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    idCategory: number;
+  @ManyToOne(
+    type => Forum,
+    forum => forum.posts,
+  )
+  forum: Forum;
 
-    @Column()
-    idSubcategory: string;
+  @ManyToOne(
+    type => User,
+    user => user.posts,
+  )
+  user: User;
 
-    @Column()
-    email: string;
+  @Column()
+  text: string;
 
-    @Column()
-    text: string;
-    
+  @Column({ default: false })
+  isReported: boolean;
+
+  @ManyToMany(type => User)
+  @JoinTable()
+  users: User[];
 }

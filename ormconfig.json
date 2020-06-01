@@ -10,5 +10,6 @@
   "migrations": ["dist/migration/**/*.js"],
   "cli": {
     "migrationsDir": "migration/"
-  }
+  },
+  "logging": true
 }

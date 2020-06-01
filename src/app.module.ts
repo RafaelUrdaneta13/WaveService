@@ -7,11 +7,7 @@ import { Connection } from 'typeorm';
 import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forRoot(),
-    UserModule,
-    AuthModule,
-  ],
+  imports: [TypeOrmModule.forRoot(), UserModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })
