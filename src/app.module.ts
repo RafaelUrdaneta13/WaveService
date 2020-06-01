@@ -5,9 +5,19 @@ import { UserModule } from './modules/user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
 import { AuthModule } from './modules/auth/auth.module';
+import { CategoryModule } from './modules/category/category.module';
+import { ForumModule } from './modules/forum/forum.module';
+import { SubCategoryModule } from './modules/sub-category/sub-category.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(), UserModule, AuthModule],
+  imports: [
+    TypeOrmModule.forRoot(),
+    UserModule,
+    AuthModule,
+    CategoryModule,
+    ForumModule,
+    SubCategoryModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

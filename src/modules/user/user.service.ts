@@ -33,8 +33,7 @@ export class UserService {
     return this.usersRepository.findOne({ where: [{ email }, { userName }] });
   }
 
-  async createUser(userRegister: RegisterDto) {
-    await this.usersRepository.save(userRegister);
-    return userRegister;
+  createUser(userRegister: User): Promise<User> {
+    return this.usersRepository.save(userRegister);
   }
 }

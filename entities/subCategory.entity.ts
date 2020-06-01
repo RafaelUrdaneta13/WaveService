@@ -9,13 +9,13 @@ import { Category } from './category.entity';
 import { Forum } from './forum.entity';
 import { ContentSubcategory } from './contentSubcategory.entity';
 @Entity()
-export class Subcategory {
+export class SubCategory {
   @PrimaryGeneratedColumn()
   id: number;
 
   @ManyToOne(
     type => Category,
-    category => category.subcategories,
+    category => category.subCategories,
   )
   category: Category;
 
@@ -24,13 +24,13 @@ export class Subcategory {
 
   @OneToMany(
     type => ContentSubcategory,
-    contentSubcategory => contentSubcategory.subcategory,
+    contentSubcategory => contentSubcategory.subCategory,
   )
   contentSubcategories: ContentSubcategory[];
 
   @OneToMany(
     type => Forum,
-    forum => forum.subcategory,
+    forum => forum.subCategory,
   )
   forums: Forum[];
 }

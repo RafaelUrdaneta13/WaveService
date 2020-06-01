@@ -7,7 +7,7 @@ import {
   ManyToOne,
   JoinTable,
 } from 'typeorm';
-import { Subcategory } from './subCategory.entity';
+import { SubCategory } from './subCategory.entity';
 import { Post } from './post.entity';
 import { User } from './user.entity';
 
@@ -17,10 +17,10 @@ export class Forum {
   id: number;
 
   @ManyToOne(
-    type => Subcategory,
-    subcategory => subcategory.forums,
+    type => SubCategory,
+    subCategory => subCategory.forums,
   )
-  subcategory: Subcategory;
+  subCategory: SubCategory;
 
   @Column()
   title: string;

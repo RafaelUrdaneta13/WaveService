@@ -13,6 +13,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { UserService } from './user.service';
 import { JwtService } from '@nestjs/jwt';
 import { sha1 } from 'object-hash';
+import { User } from 'entities/user.entity';
 @Controller('user')
 export class UserController {
   constructor(
@@ -23,7 +24,6 @@ export class UserController {
   @Post('login')
   async login(@Body() body: LoginDto) {
     const encryptedPass = sha1(body.password);
-    //console.log(encryptedPass);
     const user = await this.userService.findByEmailAndPassword({
       email: body.email,
       password: encryptedPass,
@@ -44,7 +44,9 @@ export class UserController {
 
   @Post('register')
   async register(@Body() body: RegisterDto) {
-    const encrytedPass = sha1(body.password);
+    const encryptedPass = sha1(body.password);
+    body.password = encryptedPass;
+    const user: User = new User({ ...body, birthday: new Date(body.birthday) });
     const foundUser = await this.userService.findByEmailOrUsername(
       body.email,
       body.userName,
@@ -55,22 +57,14 @@ export class UserController {
         HttpStatus.FOUND,
       );
     } else {
-      const user = await this.userService.createUser({
-        firstName: body.firstName,
-        lastName: body.lastName,
-        userName: body.userName,
-        email: body.email,
-        birthday: '1988-06-05',
-        isActive: true,
-        password: encrytedPass,
-      });
-      delete user.password;
+      const userCreated = await this.userService.createUser(user);
+      delete userCreated.password;
       return {
         accessToken: this.jwtService.sign({
-          email: user.email,
-          password: encrytedPass,
+          email: userCreated.email,
+          password: encryptedPass,
         }),
-        user,
+        userCreated,
       };
     }
   }

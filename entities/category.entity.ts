@@ -9,7 +9,7 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Color } from './color.entity';
-import { Subcategory } from './subCategory.entity';
+import { SubCategory } from './subCategory.entity';
 import { ContentCategory } from './contentCategory.entity';
 import { User } from './user.entity';
 
@@ -26,10 +26,10 @@ export class Category {
   color: Color;
 
   @OneToMany(
-    type => Subcategory,
-    subcategory => subcategory.category,
+    type => SubCategory,
+    subCategory => subCategory.category,
   )
-  subcategories: Subcategory[];
+  subCategories: SubCategory[];
 
   @OneToMany(
     type => ContentCategory,
