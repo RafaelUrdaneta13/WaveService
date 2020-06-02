@@ -142,6 +142,35 @@ export class FillingUsers1590266082384 implements MigrationInterface {
         birthday: '1995-08-09 23:59:59',
       })
       .execute();
+
+    await queryRunner.query(`INSERT INTO wave.color (color) VALUES ('azul');`);
+    await queryRunner.query(`INSERT INTO wave.color (color) VALUES ('verde');`);
+
+    await queryRunner.query(
+      `INSERT INTO wave.category (name, colorId) VALUES ('Películas', '1');`,
+    );
+
+    await queryRunner.query(
+      `INSERT INTO wave.category (name, colorId) VALUES ('Libros', '2');`,
+    );
+    await queryRunner.query(
+      `INSERT INTO wave.sub_category (name, categoryId) VALUES ('Harry Potter', '1');`,
+    );
+    await queryRunner.query(`INSERT INTO wave.sub_category (name, categoryId) VALUES ('Misterio', '2');
+      `);
+    await queryRunner.query(`INSERT INTO wave.forum (title, subCategoryId) VALUES ('Hermione is the best', '1');
+      `);
+    await queryRunner.query(`INSERT INTO wave.forum (title, subCategoryId) VALUES ('El profesor de john katzenbach', '2');
+      `);
+    await queryRunner.query(`INSERT INTO wave.category_users_user (categoryId, userEmail) VALUES ('1', 'paolaouteda@gmail.com');
+      `);
+    await queryRunner.query(`INSERT INTO wave.content_category (id, title, imagen, text,link, categoryId) VALUES ('1', 'Libros de Calidad', 'https://images.app.goo.gl/kMx6D512hqMnMpTV6', 'Aqui podras conseguir personas con quien compartir la maravillosa aventura de la lectura no olvides visitar la pagina y seguir nutriendo tu lectura', 'https://freeditorial.com/es/books/search', '2');`)
+
+    await queryRunner.query(`INSERT INTO wave.content_subcategory (id, title, imagen, text, link, subcategoryId) VALUES ('1', 'Los personajes de Harry Potter', 'https://images.app.goo.gl/5TAG6GqAoQwsTPhXA', 'Aqui hablaremos sobre los distintos personajes de una de las mejores libros de Magia que existe, en el link podras descargar la coleccion completa en pdf', 'ftp://186.67.225.38/Harry%20Potter.%20%20%20%20%20%20%20%20%20%20%20La%20coleccion%20completa%20-%20J.%20K.%20Rowling.pdf', '1');`)
+
+    await queryRunner.query(`INSERT INTO wave.content_category (id ,title ,imagen ,text ,link ,categoryId) VALUES ('2', 'Peliculas en 1080p', 'https://images.app.goo.gl/Dts4NwmhRhpPyTC87', 'Revive y comparte tus momentos preferidos de tu top de peliculas favoritas y no te pierdas esta pagina donde podras conseguir tus peliculas en una buena calidad', 'https://cuevana3.io/', '1');`)
+
+    await queryRunner.query(`INSERT INTO wave.content_subcategory (id,title,imagen,text,link,subCategoryId) VALUES ('2', 'Libros de Misterio', 'https://images.app.goo.gl/MZetnsZwreLV6tBx7', 'Comparte con los demás usuarios el libro que te puso los pelos de punta', 'https://okdiario.com/lista/8-mejores-libros-misterio-4568368', '2');`)
   }
 
   public async down(queryRunner: QueryRunner): Promise<any> {
