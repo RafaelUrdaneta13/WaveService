@@ -12,7 +12,7 @@ export class User {
     password,
     birthday,
     role,
-    isActive,
+    isActive
   }: {
     firstName?: string;
     lastName?: string;
@@ -30,7 +30,7 @@ export class User {
       (this.password = password),
       (this.birthday = birthday),
       (this.role = role),
-      (this.isActive = isActive);
+      (this.isActive = isActive)
   }
 
   @PrimaryColumn()
@@ -51,15 +51,15 @@ export class User {
   @Column()
   birthday: Date;
 
-  @Column({ default: true })
-  isActive: boolean;
-
   @Column({
     type: 'enum',
     enum: userRole,
     default: userRole.NORMAL,
   })
   role: userRole;
+
+  @Column({default: true})
+  isActive: boolean
 
   @OneToMany(
     type => Post,

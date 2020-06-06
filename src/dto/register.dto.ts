@@ -16,7 +16,10 @@ export class RegisterDto {
   @Length(6, 11)
   password: string;
 
+  @IsNotEmpty()
   birthday: string;
-  
+
+  isActive: boolean;
+
   role: userRole;
 }

@@ -24,4 +24,8 @@ export class CategoryService {
       })
       .getMany();
   }
+
+  findById(id:number): Promise<Category> {
+    return this.categoriesRepository.findOne(id)
+  }
 }

@@ -17,4 +17,8 @@ export class ForumService {
   findAllBySubCategory(id: number): Promise<Forum[]> {
     return this.forumsRepository.find({ where: { subCategory: id } });
   }
+
+  findById(id:number): Promise<Forum>{
+    return this.forumsRepository.findOne(id)
+  }
 }

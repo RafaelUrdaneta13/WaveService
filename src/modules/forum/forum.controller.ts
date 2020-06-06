@@ -17,4 +17,10 @@ export class ForumController {
   async findBySubcategory(@Param() params) {
     return { forums: await this.forumService.findAllBySubCategory(params.id) };
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':id')
+  async findById(@Param('id') id:number) {
+    return { forums: await this.forumService.findAllBySubCategory(id) };
+  }
 }

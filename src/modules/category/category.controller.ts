@@ -20,4 +20,10 @@ export class CategoryController {
       categories: await this.categoryService.findByUser(user.email),
     };
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':id')
+  async findById(@Param('id') id:number) {
+    return this.categoryService.findById(id)
+  }
 }
