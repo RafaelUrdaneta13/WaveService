@@ -12,7 +12,8 @@ export class User {
     password,
     birthday,
     role,
-    isActive
+    isActive,
+    image
   }: {
     firstName?: string;
     lastName?: string;
@@ -22,6 +23,7 @@ export class User {
     birthday?: Date;
     role?: userRole;
     isActive?: boolean;
+    image?: Buffer;
   } = {}) {
     (this.firstName = firstName),
       (this.lastName = lastName),
@@ -30,7 +32,8 @@ export class User {
       (this.password = password),
       (this.birthday = birthday),
       (this.role = role),
-      (this.isActive = isActive)
+      (this.isActive = isActive),
+      (this.image = image)
   }
 
   @PrimaryColumn()
@@ -57,6 +60,9 @@ export class User {
     default: userRole.NORMAL,
   })
   role: userRole;
+
+  @Column()
+  image: Buffer;
 
   @Column({default: true})
   isActive: boolean
