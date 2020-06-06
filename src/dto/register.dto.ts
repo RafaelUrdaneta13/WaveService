@@ -13,10 +13,9 @@ export class RegisterDto {
   @IsEmail()
   email: string;
 
-  @Length(7, 10)
+  @Length(6, 11)
   password: string;
 
-  @IsDate()
   birthday: string;
   
   role: userRole;
