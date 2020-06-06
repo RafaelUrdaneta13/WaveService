@@ -6,7 +6,7 @@
   "password": "password",
   "database": "wave",
   "entities": ["dist/**/*.entity.js"],
-  "synchronize": false,
+  "synchronize": true,
   "migrations": ["dist/migration/**/*.js"],
   "cli": {
     "migrationsDir": "migration/"
