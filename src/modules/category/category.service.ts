@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Category } from 'entities/category.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, createQueryBuilder } from 'typeorm';
 
 @Injectable()
 export class CategoryService {
@@ -16,16 +16,15 @@ export class CategoryService {
     });
   }
 
-  findByUser(email: string): Promise<Category[]> {
+  findWithSubCategories(): Promise<Category[]> {
     return this.categoriesRepository
       .createQueryBuilder('category')
-      .innerJoin('category.users', 'user', 'user.email IN (:userEmail)', {
-        userEmail: email,
-      })
+      .innerJoinAndSelect('category.subCategories', 'subCategory')
+      .leftJoinAndSelect('category.contentCategories', 'contentCategories')
       .getMany();
   }
 
-  findById(id:number): Promise<Category> {
-    return this.categoriesRepository.findOne(id)
+  findById(id: number): Promise<Category> {
+    return this.categoriesRepository.findOne(id);
   }
 }

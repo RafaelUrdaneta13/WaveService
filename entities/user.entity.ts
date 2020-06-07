@@ -13,7 +13,7 @@ export class User {
     birthday,
     role,
     isActive,
-    image
+    image,
   }: {
     firstName?: string;
     lastName?: string;
@@ -33,7 +33,7 @@ export class User {
       (this.birthday = birthday),
       (this.role = role),
       (this.isActive = isActive),
-      (this.image = image)
+      (this.image = image);
   }
 
   @PrimaryColumn()
@@ -61,14 +61,14 @@ export class User {
   })
   role: userRole;
 
-  @Column("longblob", {nullable: true})
+  @Column('longblob', { nullable: true })
   image: Buffer;
 
-  @Column({default: true})
-  isActive: boolean
+  @Column({ default: true })
+  isActive: boolean;
 
   @OneToMany(
-    type => Post,
+    () => Post,
     post => post.user,
   )
   posts: Post[];

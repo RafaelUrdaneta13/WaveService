@@ -29,8 +29,9 @@ export class FillingUsers1590266082384 implements MigrationInterface {
       userName varchar(255) NOT NULL,
       password varchar(255) NOT NULL,
       birthday datetime NOT NULL,
-      isActive tinyint NOT NULL DEFAULT '1',
       role enum('admin','normal','premium') NOT NULL DEFAULT 'normal',
+      image blob,
+      isActive tinyint NOT NULL DEFAULT '1',
       PRIMARY KEY (email),
       UNIQUE KEY IDX_da5934070b5f2726ebfd3122c8 (userName)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -96,15 +97,15 @@ export class FillingUsers1590266082384 implements MigrationInterface {
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
   `);
 
-    await queryRunner.query(`CREATE TABLE category_users_user (
-    categoryId int NOT NULL,
-    userEmail varchar(255) NOT NULL,
-    PRIMARY KEY (categoryId,userEmail),
-    KEY IDX_4f27784253b16e9a65eac7c577 (categoryId),
-    KEY IDX_9d3d31a2b96b414ee0c9baaafb (userEmail),
-    CONSTRAINT FK_4f27784253b16e9a65eac7c5773 FOREIGN KEY (categoryId) REFERENCES category (id) ON DELETE CASCADE,
-    CONSTRAINT FK_9d3d31a2b96b414ee0c9baaafbe FOREIGN KEY (userEmail) REFERENCES user (email) ON DELETE CASCADE
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+    await queryRunner.query(`CREATE TABLE sub_category_users_user (
+      subCategoryId int NOT NULL,
+      userEmail varchar(255) NOT NULL,
+      PRIMARY KEY (subCategoryId,userEmail),
+      KEY IDX_bc443aff62a3db3785b356c12e (subCategoryId),
+      KEY IDX_e625771913ed1c3b90e7bab620 (userEmail),
+      CONSTRAINT FK_bc443aff62a3db3785b356c12e7 FOREIGN KEY (subCategoryId) REFERENCES sub_category (id) ON DELETE CASCADE,
+      CONSTRAINT FK_e625771913ed1c3b90e7bab6208 FOREIGN KEY (userEmail) REFERENCES user (email) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
   `);
 
     await queryRunner.query(`CREATE TABLE forum_users_user (
@@ -140,6 +141,7 @@ export class FillingUsers1590266082384 implements MigrationInterface {
         email: 'paolaouteda@gmail.com',
         password: '8b959c05562f6b3f925b957b1984960049d35983',
         birthday: '1995-08-09 23:59:59',
+        image: null,
       })
       .execute();
 
@@ -162,15 +164,23 @@ export class FillingUsers1590266082384 implements MigrationInterface {
       `);
     await queryRunner.query(`INSERT INTO wave.forum (title, subCategoryId) VALUES ('El profesor de john katzenbach', '2');
       `);
-    await queryRunner.query(`INSERT INTO wave.category_users_user (categoryId, userEmail) VALUES ('1', 'paolaouteda@gmail.com');
+    await queryRunner.query(`INSERT INTO wave.sub_category_users_user (subCategoryId, userEmail) VALUES ('1', 'paolaouteda@gmail.com');
       `);
-    await queryRunner.query(`INSERT INTO wave.content_category (id, title, imagen, text,link, categoryId) VALUES ('1', 'Libros de Calidad', 'https://i0.wp.com/lapalabra.gt/wp-content/uploads/2018/11/gravity-falls-diario-3-journal-3-entrega-inmediata-D_NQ_NP_808015-MLC25201571264_122016-O.jpg?w=1042', 'Aqui podras conseguir personas con quien compartir la maravillosa aventura de la lectura no olvides visitar la pagina y seguir nutriendo tu lectura', 'https://freeditorial.com/es/books/search', '2');`)
+    await queryRunner.query(
+      `INSERT INTO wave.content_category (id, title, imagen, text,link, categoryId) VALUES ('1', 'Libros de Calidad', 'https://i0.wp.com/lapalabra.gt/wp-content/uploads/2018/11/gravity-falls-diario-3-journal-3-entrega-inmediata-D_NQ_NP_808015-MLC25201571264_122016-O.jpg?w=1042', 'Aqui podras conseguir personas con quien compartir la maravillosa aventura de la lectura no olvides visitar la pagina y seguir nutriendo tu lectura', 'https://freeditorial.com/es/books/search', '2');`,
+    );
 
-    await queryRunner.query(`INSERT INTO wave.content_subcategory (id, title, imagen, text, link, subcategoryId) VALUES ('1', 'Los personajes de Harry Potter', 'https://i.pinimg.com/originals/8a/52/2f/8a522f51807ba20a615cbd02c85eb6b5.jpg', 'Aqui hablaremos sobre los distintos personajes de una de las mejores libros de Magia que existe, en el link podras descargar la coleccion completa en pdf', 'ftp://186.67.225.38/Harry%20Potter.%20%20%20%20%20%20%20%20%20%20%20La%20coleccion%20completa%20-%20J.%20K.%20Rowling.pdf', '1');`)
+    await queryRunner.query(
+      `INSERT INTO wave.content_subcategory (id, title, imagen, text, link, subcategoryId) VALUES ('1', 'Los personajes de Harry Potter', 'https://i.pinimg.com/originals/8a/52/2f/8a522f51807ba20a615cbd02c85eb6b5.jpg', 'Aqui hablaremos sobre los distintos personajes de una de las mejores libros de Magia que existe, en el link podras descargar la coleccion completa en pdf', 'ftp://186.67.225.38/Harry%20Potter.%20%20%20%20%20%20%20%20%20%20%20La%20coleccion%20completa%20-%20J.%20K.%20Rowling.pdf', '1');`,
+    );
 
-    await queryRunner.query(`INSERT INTO wave.content_category (id ,title ,imagen ,text ,link ,categoryId) VALUES ('2', 'Peliculas en 1080p', 'https://i.pinimg.com/564x/03/46/70/0346709bef8e1c572371eefe7f5602ad.jpg', 'Revive y comparte tus momentos preferidos de tu top de peliculas favoritas y no te pierdas esta pagina donde podras conseguir tus peliculas en una buena calidad', 'https://cuevana3.io/', '1');`)
+    await queryRunner.query(
+      `INSERT INTO wave.content_category (id ,title ,imagen ,text ,link ,categoryId) VALUES ('2', 'Peliculas en 1080p', 'https://i.pinimg.com/564x/03/46/70/0346709bef8e1c572371eefe7f5602ad.jpg', 'Revive y comparte tus momentos preferidos de tu top de peliculas favoritas y no te pierdas esta pagina donde podras conseguir tus peliculas en una buena calidad', 'https://cuevana3.io/', '1');`,
+    );
 
-    await queryRunner.query(`INSERT INTO wave.content_subcategory (id,title,imagen,text,link,subCategoryId) VALUES ('2', 'Libros de Misterio', 'https://i.pinimg.com/564x/fc/30/a5/fc30a5269167b32e5cdab0aa8e438261.jpg', 'Comparte con los demás usuarios el libro que te puso los pelos de punta', 'https://okdiario.com/lista/8-mejores-libros-misterio-4568368', '2');`)
+    await queryRunner.query(
+      `INSERT INTO wave.content_subcategory (id,title,imagen,text,link,subCategoryId) VALUES ('2', 'Libros de Misterio', 'https://i.pinimg.com/564x/fc/30/a5/fc30a5269167b32e5cdab0aa8e438261.jpg', 'Comparte con los demás usuarios el libro que te puso los pelos de punta', 'https://okdiario.com/lista/8-mejores-libros-misterio-4568368', '2');`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<any> {

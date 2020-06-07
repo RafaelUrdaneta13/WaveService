@@ -1,6 +1,7 @@
-import { Controller, UseGuards, Get, Param } from '@nestjs/common';
+import { Controller, UseGuards, Get, Param, Request } from '@nestjs/common';
 import { SubCategoryService } from './sub-category.service';
 import { AuthGuard } from '@nestjs/passport';
+import { User } from 'entities/user.entity';
 
 @Controller('sub-category')
 export class SubCategoryController {
@@ -15,8 +16,16 @@ export class SubCategoryController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('favorites')
+  async findByUser(@Request() { user }: { user: User }) {
+    return {
+      subCategories: await this.subCategoryService.findByUser(user.email),
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
-  async findById(@Param('id') id:number) {
-    return this.subCategoryService.findById(id)
+  async findById(@Param('id') id: number) {
+    return this.subCategoryService.findById(id);
   }
 }

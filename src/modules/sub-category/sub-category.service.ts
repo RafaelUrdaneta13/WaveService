@@ -17,7 +17,16 @@ export class SubCategoryService {
     });
   }
 
-  findById(id:number): Promise<SubCategory> {
-    return this.subCategoriesRepository.findOne(id)
+  findByUser(email: string): Promise<SubCategory[]> {
+    return this.subCategoriesRepository
+      .createQueryBuilder('subCategory')
+      .innerJoin('subCategory.users', 'user', 'user.email IN (:userEmail)', {
+        userEmail: email,
+      })
+      .getMany();
+  }
+
+  findById(id: number): Promise<SubCategory> {
+    return this.subCategoriesRepository.findOne(id);
   }
 }
