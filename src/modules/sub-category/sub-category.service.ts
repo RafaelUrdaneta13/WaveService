@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SubCategory } from 'entities/subCategory.entity';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
+import { FavoriteSubCategoryDto } from 'src/dto/favoriteSubCategory.dto';
+import { User } from 'entities/user.entity';
 
 @Injectable()
 export class SubCategoryService {
@@ -23,6 +25,18 @@ export class SubCategoryService {
       .innerJoin('subCategory.users', 'user', 'user.email IN (:userEmail)', {
         userEmail: email,
       })
+      .getMany();
+  }
+
+  saveSubCategory(subCategory: SubCategory): Promise<SubCategory> {
+    return this.subCategoriesRepository.save(subCategory);
+  }
+
+  findByIds(ids: number[]): Promise<SubCategory[]> {
+    return this.subCategoriesRepository
+      .createQueryBuilder('subCategory')
+      .leftJoinAndSelect('subCategory.users', 'user')
+      .where('subCategory.id IN (:ids)', { ids })
       .getMany();
   }
 

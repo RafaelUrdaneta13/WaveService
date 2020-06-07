@@ -1,7 +1,16 @@
-import { Controller, UseGuards, Get, Param, Request } from '@nestjs/common';
+import {
+  Controller,
+  UseGuards,
+  Get,
+  Param,
+  Request,
+  Patch,
+  Body,
+} from '@nestjs/common';
 import { SubCategoryService } from './sub-category.service';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'entities/user.entity';
+import { FavoriteSubCategoryDto } from 'src/dto/favoriteSubCategory.dto';
 
 @Controller('sub-category')
 export class SubCategoryController {
@@ -21,6 +30,27 @@ export class SubCategoryController {
     return {
       subCategories: await this.subCategoryService.findByUser(user.email),
     };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('add/favorite')
+  async addAsFavorite(
+    @Request() { user }: { user: User },
+    @Body() subCategories: FavoriteSubCategoryDto[],
+  ) {
+    const subCategoriesToChange = await this.subCategoryService.findByIds(
+      subCategories.map(subCategory => subCategory.id),
+    );
+
+    subCategoriesToChange.map(subcategory => subcategory.users.push(user));
+
+    const promises = subCategoriesToChange.map(subcategory =>
+      this.subCategoryService.saveSubCategory(subcategory),
+    );
+
+    return Promise.all(promises).then(() => ({
+      message: 'Subcategorias actualizadas',
+    }));
   }
 
   @UseGuards(AuthGuard('jwt'))
