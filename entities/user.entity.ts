@@ -61,7 +61,7 @@ export class User {
   })
   role: userRole;
 
-  @Column()
+  @Column("longblob", {nullable: true})
   image: Buffer;
 
   @Column({default: true})
