@@ -10,14 +10,14 @@ import { MulterModule } from '@nestjs/platform-express';
 @Module({
   imports: [
     forwardRef(() => AuthModule),
-    MulterModule.register({dest: '.\\upload'}), 
+    MulterModule.register({ dest: '.\\upload' }),
     TypeOrmModule.forFeature([User]),
     JwtModule.register({
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '60s' },
-    })
+    }),
   ],
-  controllers: [UserController, ],
+  controllers: [UserController],
   providers: [UserService],
   exports: [UserService],
 })

@@ -30,7 +30,7 @@ export class FillingUsers1590266082384 implements MigrationInterface {
       password varchar(255) NOT NULL,
       birthday datetime NOT NULL,
       role enum('admin','normal','premium') NOT NULL DEFAULT 'normal',
-      image blob,
+      image varchar(255) DEFAULT NULL,
       isActive tinyint NOT NULL DEFAULT '1',
       PRIMARY KEY (email),
       UNIQUE KEY IDX_da5934070b5f2726ebfd3122c8 (userName)
@@ -76,26 +76,26 @@ export class FillingUsers1590266082384 implements MigrationInterface {
     await queryRunner.query(`CREATE TABLE forum (
       id int NOT NULL AUTO_INCREMENT,
       title varchar(255) NOT NULL,
+      image varchar(255) DEFAULT NULL,
       subCategoryId int DEFAULT NULL,
-      image VARCHAR(255) DEFAULT NULL;
       PRIMARY KEY (id),
       KEY FK_83186d94550346daa2dd7986add (subCategoryId),
       CONSTRAINT FK_83186d94550346daa2dd7986add FOREIGN KEY (subCategoryId) REFERENCES sub_category (id)
-    ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
   `);
 
     await queryRunner.query(`CREATE TABLE post (
-    id int NOT NULL AUTO_INCREMENT,
-    text varchar(255) NOT NULL,
-    isReported tinyint NOT NULL DEFAULT '0',
-    forumId int DEFAULT NULL,
-    userEmail varchar(255) DEFAULT NULL,
-    PRIMARY KEY (id),
-    KEY FK_c677952115eaa26692f819235cd (forumId),
-    KEY FK_b6a3397e33ab179a2c7d64705b9 (userEmail),
-    CONSTRAINT FK_b6a3397e33ab179a2c7d64705b9 FOREIGN KEY (userEmail) REFERENCES user (email),
-    CONSTRAINT FK_c677952115eaa26692f819235cd FOREIGN KEY (forumId) REFERENCES forum (id)
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+      id int NOT NULL AUTO_INCREMENT,
+      text varchar(255) NOT NULL,
+      isReported tinyint NOT NULL DEFAULT '0',
+      forumId int DEFAULT NULL,
+      userEmail varchar(255) DEFAULT NULL,
+      PRIMARY KEY (id),
+      KEY FK_c677952115eaa26692f819235cd (forumId),
+      KEY FK_b6a3397e33ab179a2c7d64705b9 (userEmail),
+      CONSTRAINT FK_b6a3397e33ab179a2c7d64705b9 FOREIGN KEY (userEmail) REFERENCES user (email),
+      CONSTRAINT FK_c677952115eaa26692f819235cd FOREIGN KEY (forumId) REFERENCES forum (id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
   `);
 
     await queryRunner.query(`CREATE TABLE sub_category_users_user (
@@ -161,7 +161,7 @@ export class FillingUsers1590266082384 implements MigrationInterface {
     );
     await queryRunner.query(`INSERT INTO wave.sub_category (name, categoryId) VALUES ('Misterio', '2');
       `);
-    await queryRunner.query(`INSERT INTO wave.forum (title, subCategoryId) VALUES ('Hermione is the best', '1', );
+    await queryRunner.query(`INSERT INTO wave.forum (title, subCategoryId) VALUES ('Hermione is the best', '1');
       `);
     await queryRunner.query(`INSERT INTO wave.forum (title, subCategoryId) VALUES ('El profesor de john katzenbach', '2');
       `);
@@ -511,8 +511,8 @@ export class FillingUsers1590266082384 implements MigrationInterface {
     //
     */
     // await queryRunner.query()
-    }
-  
+  }
+
   public async down(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.query(
       `DELETE FROM wave.user WHERE (email = 'paolaouteda@gmail.com')`,

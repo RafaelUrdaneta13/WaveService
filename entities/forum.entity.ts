@@ -25,6 +25,9 @@ export class Forum {
   @Column()
   title: string;
 
+  @Column({ nullable: true })
+  image: string;
+
   @ManyToMany(type => User) //Suscrito a
   @JoinTable()
   users: User[];
