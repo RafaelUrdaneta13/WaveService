@@ -6,16 +6,18 @@ import { UserService } from './user.service';
 import { AuthModule } from '../auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from 'src/helpers/constants';
+import { MulterModule } from '@nestjs/platform-express';
 @Module({
   imports: [
-    forwardRef(() => AuthModule), 
+    forwardRef(() => AuthModule),
+    MulterModule.register({dest: '.\\upload'}), 
     TypeOrmModule.forFeature([User]),
     JwtModule.register({
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '60s' },
-    }),
+    })
   ],
-  controllers: [UserController],
+  controllers: [UserController, ],
   providers: [UserService],
   exports: [UserService],
 })

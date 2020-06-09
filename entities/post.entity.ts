@@ -33,6 +33,9 @@ export class Post {
   @Column({ default: false })
   isReported: boolean;
 
+  @Column()
+  image: string;
+
   @ManyToMany(type => User)
   @JoinTable()
   users: User[];

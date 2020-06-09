@@ -33,6 +33,6 @@ export class ForumController {
   @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   async findById(@Param('id') id: number) {
-    return { forums: await this.forumService.findAllBySubCategory(id) };
+    return { forums: await this.forumService.findById(id) };
   }
 }

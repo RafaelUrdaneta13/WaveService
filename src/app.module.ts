@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { CategoryModule } from './modules/category/category.module';
 import { ForumModule } from './modules/forum/forum.module';
 import { SubCategoryModule } from './modules/sub-category/sub-category.module';
+import { MulterModule } from "@nestjs/platform-express";
 
 @Module({
   imports: [

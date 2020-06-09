@@ -23,7 +23,7 @@ export class User {
     birthday?: Date;
     role?: userRole;
     isActive?: boolean;
-    image?: Buffer;
+    image?: string;
   } = {}) {
     (this.firstName = firstName),
       (this.lastName = lastName),
@@ -61,8 +61,8 @@ export class User {
   })
   role: userRole;
 
-  @Column('longblob', { nullable: true })
-  image: Buffer;
+  @Column({ nullable: true })
+  image: string;
 
   @Column({ default: true })
   isActive: boolean;

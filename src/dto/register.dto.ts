@@ -19,7 +19,7 @@ export class RegisterDto {
   @IsNotEmpty()
   birthday: string;
 
-  image: Buffer;
+  image: string;
 
   isActive: boolean;
 
