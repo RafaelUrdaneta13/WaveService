@@ -28,12 +28,12 @@ export class Forum {
   @Column({ nullable: true })
   image: string;
 
-  @ManyToMany(type => User) //Suscrito a
+  @ManyToMany(() => User) //Suscrito a
   @JoinTable()
   users: User[];
 
   @OneToMany(
-    type => Post,
+    () => Post,
     post => post.forum,
   )
   posts: Post[];

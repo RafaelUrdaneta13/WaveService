@@ -19,7 +19,7 @@ export class ForumService {
   }
 
   findById(id: number): Promise<Forum> {
-    return this.forumsRepository.findOne(id);
+    return this.forumsRepository.findOne(id); // tratar de traer el relations??
   }
 
   findByUserAndSubCategory(
@@ -33,5 +33,9 @@ export class ForumService {
       })
       .where({ where: { subCategory: subCategoryId } })
       .getMany();
+  }
+
+  saveForum(forum: Forum): Promise<Forum> {
+    return this.forumsRepository.save(forum);
   }
 }

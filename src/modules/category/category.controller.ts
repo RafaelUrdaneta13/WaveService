@@ -18,29 +18,37 @@ export class CategoryController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('favorites')
+  async findByUser(@Request() { user }: { user: User }) {
+    const categories = await this.categoryService.findWithSubCategories();
+    console.log(categories);
+    const subcategories = await this.subCategoryService.findByUser(user.email);
+    console.log(subcategories);
+    const filterCategories = categories.filter(category => {
+      const subCategoriesFiltradas = subcategories.filter(subcategory =>
+        category.subCategories.some(sub => sub.id === subcategory.id),
+      );
+      if (subCategoriesFiltradas.length > 0) {
+        category.subCategories = subCategoriesFiltradas;
+        return category;
+      } else {
+        return false;
+      }
+    });
+    return {
+      categories: filterCategories,
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get('all-with-subcategories')
   async findWithSubcategories() {
     return { categories: await this.categoryService.findWithSubCategories() };
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('favorites')
-  async findByUser(@Request() { user }: { user: User }) {
-    const categories = await this.categoryService.findWithSubCategories();
-    console.log(categories);
-    const subcategories = await this.subCategoryService.findByUser(user.email);
-    return {
-      categories: categories.filter(category =>
-        category.subCategories.some(subCategory =>
-          subcategories.some(subCat => subCat.id === subCategory.id),
-        ),
-      ),
-    };
-  }
-
-  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   async findById(@Param('id') id: number) {
-    return this.categoryService.findById(id);
+    return await this.categoryService.findById(id);
   }
 }

@@ -54,8 +54,24 @@ export class SubCategoryController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Patch('dislike/:id')
+  async dislikeSubcategory(
+    @Param('id') idSubcategory: number,
+    @Request() { user }: { user: User },
+  ) {
+    const subcategory = await this.subCategoryService.findById(idSubcategory);
+    console.log(subcategory);
+    console.log(subcategory.users);
+    subcategory.users = subcategory.users.filter(userIn => userIn !== user);
+    await this.subCategoryService.saveSubCategory(subcategory);
+    return {
+      message: 'Dislike succeeded',
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   async findById(@Param('id') id: number) {
-    return this.subCategoryService.findById(id);
+    return await this.subCategoryService.findById(id);
   }
 }
