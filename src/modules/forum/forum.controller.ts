@@ -65,7 +65,7 @@ export class ForumController {
     const forum = await this.forumService.findById(idForum);
     console.log(forum);
     console.log(forum.users);
-    const newUsers = forum.users.filter(userIn => userIn !== user);
+    const newUsers = forum.users.filter(userIn => userIn.email !== user.email);
     forum.users = newUsers;
     await this.forumService.saveForum(forum);
     return {

@@ -29,10 +29,11 @@ export class PostService {
   findLatestPosts(id: number): Promise<Post[]> {
     return this.postsRepository.find({
       where: { id: MoreThan(id) },
+      relations: ['user'],
     });
   }
 
-  like(post: Post): Promise<Post> {
+  savePost(post: Post): Promise<Post> {
     return this.postsRepository.save(post);
   }
 }

@@ -62,7 +62,9 @@ export class SubCategoryController {
     const subcategory = await this.subCategoryService.findById(idSubcategory);
     console.log(subcategory);
     console.log(subcategory.users);
-    subcategory.users = subcategory.users.filter(userIn => userIn !== user);
+    subcategory.users = subcategory.users.filter(
+      userIn => userIn.email !== user.email,
+    );
     await this.subCategoryService.saveSubCategory(subcategory);
     return {
       message: 'Dislike succeeded',

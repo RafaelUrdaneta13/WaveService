@@ -46,9 +46,23 @@ export class PostController {
       const users = [user];
       post.users = users;
     }
-    await this.postService.like(post);
+    await this.postService.savePost(post);
     return {
       message: 'Like succeeded',
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('dislike/:id')
+  async dislikeForum(
+    @Param('id') idPost: number,
+    @Request() { user }: { user: User },
+  ) {
+    const post = await this.postService.findOne(idPost);
+    post.users = post.users.filter(userIn => userIn.email !== user.email);
+    await this.postService.savePost(post);
+    return {
+      message: 'Dislike succeeded',
     };
   }
 }
