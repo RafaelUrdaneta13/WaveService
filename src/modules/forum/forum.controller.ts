@@ -57,11 +57,13 @@ export class ForumController {
     @Request() { user }: { user: User },
   ) {
     const forum = await this.forumService.findById(id);
+    if (!forum) {
+      throw new HttpException('El foro no existe', HttpStatus.NOT_FOUND);
+    }
     if (forum.users) {
       forum.users.push(user);
     } else {
-      const users = [user];
-      forum.users = users;
+      forum.users = [user];
     }
     await this.forumService.saveForum(forum);
     return {
@@ -76,10 +78,12 @@ export class ForumController {
     @Request() { user }: { user: User },
   ) {
     const forum = await this.forumService.findById(idForum);
-    console.log(forum);
-    console.log(forum.users);
-    const newUsers = forum.users.filter(userIn => userIn.email !== user.email);
-    forum.users = newUsers;
+    if (!forum) {
+      throw new HttpException('El foro no existe', HttpStatus.NOT_FOUND);
+    }
+    forum.users = forum.users.filter(
+      (userIn: User) => userIn.email !== user.email,
+    );
     await this.forumService.saveForum(forum);
     return {
       message: 'Dislike succeeded',
@@ -104,9 +108,12 @@ export class ForumController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('create')
-  async createForum(@Body() body: ForumDto) {
-    const subCate = await this.subCategoryService.findById(body.subCategoryId);
+  @Post('create/:idSubcategoria')
+  async createForum(
+    @Body() body: ForumDto,
+    @Param('idSubcategoria') idSubcategoria: number,
+  ) {
+    const subCate = await this.subCategoryService.findById(idSubcategoria);
     const forumExist = await this.forumService.findByName(body.title);
     if (forumExist) {
       throw new HttpException(
@@ -116,7 +123,7 @@ export class ForumController {
     } else {
       const forum: Forum = new Forum({ ...body, subCategory: subCate });
       await this.forumService.saveForum(forum);
-      return 'Algo bonito';
+      return { message: 'Foro creado exitosamente' };
     }
   }
 }

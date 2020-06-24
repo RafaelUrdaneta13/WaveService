@@ -11,10 +11,14 @@ import { SubCategoryService } from './sub-category.service';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'entities/user.entity';
 import { FavoriteSubCategoryDto } from 'src/dto/favoriteSubCategory.dto';
+import { ForumService } from '../forum/forum.service';
 
 @Controller('sub-category')
 export class SubCategoryController {
-  constructor(private subCategoryService: SubCategoryService) {}
+  constructor(
+    private subCategoryService: SubCategoryService,
+    private forumService: ForumService,
+  ) {}
 
   @UseGuards(AuthGuard('jwt'))
   @Get('category/:id')
@@ -60,15 +64,25 @@ export class SubCategoryController {
     @Request() { user }: { user: User },
   ) {
     const subcategory = await this.subCategoryService.findById(idSubcategory);
-    console.log(subcategory);
-    console.log(subcategory.users);
     subcategory.users = subcategory.users.filter(
-      userIn => userIn.email !== user.email,
+      (userIn: User) => userIn.email !== user.email,
     );
     await this.subCategoryService.saveSubCategory(subcategory);
-    return {
-      message: 'Dislike succeeded',
-    };
+    const forums = await this.forumService.findByUserAndSubCategoryWithUsers(
+      user.email,
+      idSubcategory,
+    );
+    const forumsPromises = forums.map(async forum => {
+      forum.users = forum.users.filter(
+        (userIn: User) => userIn.email !== user.email,
+      );
+      return this.forumService.saveForum(forum);
+    });
+    return Promise.all(forumsPromises).then(() => {
+      return {
+        message: 'Dislike succeeded',
+      };
+    });
   }
 
   @UseGuards(AuthGuard('jwt'))

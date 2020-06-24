@@ -7,6 +7,8 @@ import {
   Body,
   Patch,
   Request,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -39,7 +41,7 @@ export class PostController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('publish/:id')
+  @Post('publish/forum/:id')
   async createPost(
     @Body() body: PostDto,
     @Request() { user }: { user: User },
@@ -51,19 +53,21 @@ export class PostController {
       forum: forum,
       user: user,
     });
-    this.postService.createPost(post);
-    return 'lo logre';
+    this.postService.savePost(post);
+    return { message: 'Post guardado exitosamente' };
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Patch('like/:id')
   async likePost(@Param('id') id: number, @Request() { user }: { user: User }) {
     const post = await this.postService.findOne(id);
+    if (!post) {
+      throw new HttpException('El post no existe', HttpStatus.NOT_FOUND);
+    }
     if (post.users) {
       post.users.push(user);
     } else {
-      const users = [user];
-      post.users = users;
+      post.users = [user];
     }
     await this.postService.savePost(post);
     return {
@@ -78,7 +82,12 @@ export class PostController {
     @Request() { user }: { user: User },
   ) {
     const post = await this.postService.findOne(idPost);
-    post.users = post.users.filter(userIn => userIn.email !== user.email);
+    if (!post) {
+      throw new HttpException('El post no existe', HttpStatus.NOT_FOUND);
+    }
+    post.users = post.users.filter(
+      (userIn: User) => userIn.email !== user.email,
+    );
     await this.postService.savePost(post);
     return {
       message: 'Dislike succeeded',

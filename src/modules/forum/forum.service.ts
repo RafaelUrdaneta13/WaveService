@@ -20,10 +20,24 @@ export class ForumService {
   }
 
   findById(id: number): Promise<Forum> {
-    return this.forumsRepository.findOne(id); // tratar de traer el relations??
+    return this.forumsRepository.findOne(id, { relations: ['subCategory'] });
   }
 
   findByUserAndSubCategory(
+    email: string,
+    subCategoryId: number,
+  ): Promise<Forum[]> {
+    console.log(subCategoryId);
+    return this.forumsRepository
+      .createQueryBuilder('forum')
+      .innerJoinAndSelect('forum.users', 'user', 'user.email IN (:userEmail)', {
+        userEmail: email,
+      })
+      .where('forum.subCategory = :subCategoryId', { subCategoryId })
+      .getMany();
+  }
+
+  findByUserAndSubCategoryWithUsers(
     email: string,
     subCategoryId: number,
   ): Promise<Forum[]> {
@@ -32,7 +46,8 @@ export class ForumService {
       .innerJoin('forum.users', 'user', 'user.email IN (:userEmail)', {
         userEmail: email,
       })
-      .where({ where: { subCategory: subCategoryId } })
+      .leftJoinAndSelect('forum.users', 'users')
+      .where('forum.subCategory = :subCategoryId', { subCategoryId })
       .getMany();
   }
 
@@ -63,7 +78,7 @@ export class ForumService {
     }).catch(err => err);
   }
 
-  findByName( title: string): Promise<Forum> {
-    return this.forumsRepository.findOne({where: {title}})
+  findByName(title: string): Promise<Forum> {
+    return this.forumsRepository.findOne({ where: { title } });
   }
 }

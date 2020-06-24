@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan, UpdateResult } from 'typeorm';
+import { Repository, MoreThan } from 'typeorm';
 import { Post } from 'entities/post.entity';
 import { User } from 'entities/user.entity';
 
@@ -20,10 +20,6 @@ export class PostService {
       where: { forum: id },
       relations: ['user'],
     });
-  }
-
-  createPost(post: any): Promise<Post> {
-    return this.postsRepository.save(post);
   }
 
   findLatestPosts(id: number): Promise<Post[]> {
