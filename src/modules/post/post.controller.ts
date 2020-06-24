@@ -11,10 +11,18 @@ import {
 import { PostService } from './post.service';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'entities/user.entity';
+import { PostDto } from 'src/dto/post.dto';
+import { UserService } from '../user/user.service';
+import { Post as PostEntity } from '../../../entities/post.entity';
+import { ForumService } from '../forum/forum.service';
 
 @Controller('post')
 export class PostController {
-  constructor(private postService: PostService) {}
+  constructor(
+    private postService: PostService,
+    private userService: UserService,
+    private forumService: ForumService,
+  ) {}
 
   @UseGuards(AuthGuard('jwt'))
   @Get('all/forum/:id')
@@ -32,8 +40,15 @@ export class PostController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('publish')
-  async createPost(@Body() body: any) {
-    this.postService.createPost(body);
+  async createPost(@Body() body: PostDto, @Request() { user }: { user: User }) {
+    const forum = await this.forumService.findById(body.foroId);
+    const post: PostEntity = new PostEntity({
+      ...body,
+      forum: forum,
+      user: user
+    });
+    this.postService.createPost(post);
+    return 'lo logre';
   }
 
   @UseGuards(AuthGuard('jwt'))

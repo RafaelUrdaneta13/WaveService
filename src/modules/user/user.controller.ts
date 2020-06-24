@@ -50,9 +50,8 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file, @Request() { user }: { user: User }) {
-    const fileBuffer = fs.readFileSync(file.path);
     const response = await this.userService.uploadImage(
-      fileBuffer.toString('base64'),
+      file.buffer.toString('base64'),
     );
     await this.userService.saveProfilePhoto(user, response.data.data.url);
     return { imageUrl: response.data.data.url };

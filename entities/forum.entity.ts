@@ -13,6 +13,12 @@ import { User } from './user.entity';
 
 @Entity()
 export class Forum {
+  constructor({title, image, subCategory}:{title?: string, image?: string, subCategory?: SubCategory} = {}) {
+    (this.title = title),
+    (this.image = image),
+    (this.subCategory = subCategory);
+  }
+
   @PrimaryGeneratedColumn()
   id: number;
 
