@@ -39,13 +39,17 @@ export class PostController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('publish')
-  async createPost(@Body() body: PostDto, @Request() { user }: { user: User }) {
-    const forum = await this.forumService.findById(body.foroId);
+  @Post('publish/:id')
+  async createPost(
+    @Body() body: PostDto,
+    @Request() { user }: { user: User },
+    @Param('id') idForo: number,
+  ) {
+    const forum = await this.forumService.findById(idForo);
     const post: PostEntity = new PostEntity({
       ...body,
       forum: forum,
-      user: user
+      user: user,
     });
     this.postService.createPost(post);
     return 'lo logre';
