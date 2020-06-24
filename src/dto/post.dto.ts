@@ -5,7 +5,6 @@ export class PostDto {
     @IsNotEmpty()
     text: string;
 
-    @IsNotEmpty()
-    foroId: number;
+    
 
 }
