@@ -3,7 +3,7 @@
   "host": "localhost",
   "port": 3306,
   "username": "root",
-  "password": "outeda20",
+  "password": "password",
   "database": "wave",
   "entities": ["dist/**/*.entity.js"],
   "synchronize": false,
