@@ -53,7 +53,7 @@ export class PostController {
       forum: forum,
       user: user,
     });
-    this.postService.savePost(post);
+    await this.postService.savePost(post);
     return { message: 'Post guardado exitosamente' };
   }
 
