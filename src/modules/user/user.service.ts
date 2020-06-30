@@ -17,8 +17,8 @@ export class UserService {
     return this.usersRepository.find();
   }
 
-  findOne(id: number): Promise<User> {
-    return this.usersRepository.findOne(id);
+  findOne(email: string): Promise<User> {
+    return this.usersRepository.findOne(email);
   }
 
   findByEmailAndPassword({
@@ -48,17 +48,5 @@ export class UserService {
       })
       .where('email = :email', { email: user.email })
       .execute();
-  }
-
-  uploadImage(image: string): Promise<AxiosResponse> {
-    const formData = new FormData();
-    formData.append('image', image);
-    return axios({
-      method: 'post',
-      url:
-        'https://api.imgbb.com/1/upload?key=96370f6b88cfde1ea6a16a5d0d13bb0f',
-      data: formData,
-      headers: { ...formData.getHeaders() },
-    }).catch(err => err);
   }
 }

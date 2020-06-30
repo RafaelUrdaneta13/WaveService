@@ -11,6 +11,7 @@ import {
   HttpStatus,
   UseInterceptors,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ForumService } from './forum.service';
@@ -19,24 +20,37 @@ import { ForumDto } from 'src/dto/forum.dto';
 import { Forum } from 'entities/forum.entity';
 import { SubCategoryService } from '../sub-category/sub-category.service';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UploadImageService } from 'src/helpers/upload-image/upload-image.service';
 
 @Controller('forum')
 export class ForumController {
   constructor(
     private forumService: ForumService,
     private subCategoryService: SubCategoryService,
+    private uploadImageService: UploadImageService,
   ) {}
 
   @UseGuards(AuthGuard('jwt'))
   @Get('all')
-  async findAll() {
-    return { forums: await this.forumService.findAll() };
+  async findAll(@Query('page') page = 1, @Query('limit') limit = 10) {
+    return await this.forumService.findAll({
+      page,
+      limit,
+    });
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('subcategory/:id')
-  async findBySubcategory(@Param() params) {
-    return { forums: await this.forumService.findAllBySubCategory(params.id) };
+  async findBySubcategory(
+    @Param('id') idSubcategory,
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ) {
+    limit = limit > 100 ? 100 : limit;
+    return await this.forumService.findAllBySubCategory(idSubcategory, {
+      page,
+      limit,
+    });
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -47,6 +61,28 @@ export class ForumController {
   ) {
     return {
       forums: await this.forumService.findByUserAndSubCategory(user.email, id),
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('user/posts')
+  async findByUserWithPosts(@Request() { user }: { user: User }) {
+    return {
+      forums: await this.forumService.findByUserWithPostsSubscribe(user.email),
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('user/notSubscribe/posts')
+  async findByUserWithPostNotSubscribe(@Request() { user }: { user: User }) {
+    const allForums = await this.forumService.findAllWithPostByUser(user);
+    const subscribeForums = await this.forumService.findByUser(user.email);
+    const forumsNotSubscribeWithPost = allForums.filter(
+      forum =>
+        !subscribeForums.some(subscribeForum => forum.id === subscribeForum.id),
+    );
+    return {
+      forums: forumsNotSubscribeWithPost,
     };
   }
 
@@ -91,6 +127,14 @@ export class ForumController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('search')
+  async findByUser(@Request() {user}: {user : User}) {
+    return {
+      forums: await this.forumService.findByUser(user.email)
+    }
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   async findById(@Param('id') id: number) {
     return { forum: await this.forumService.findById(id) };
@@ -100,10 +144,10 @@ export class ForumController {
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file, @Param('id') id: number) {
-    const response = await this.forumService.uploadImage(
+    const response = await this.uploadImageService.uploadImage(
       file.buffer.toString('base64'),
     );
-    await this.forumService.saveProfilePhoto(id, response.data.data.url);
+    await this.forumService.savePhoto(id, response.data.data.url);
     return { imageUrl: response.data.data.url };
   }
 
@@ -112,6 +156,7 @@ export class ForumController {
   async createForum(
     @Body() body: ForumDto,
     @Param('idSubcategoria') idSubcategoria: number,
+    @Request() {user} : {user: User}
   ) {
     const subCate = await this.subCategoryService.findById(idSubcategoria);
     const forumExist = await this.forumService.findByName(body.title);
@@ -121,9 +166,9 @@ export class ForumController {
         HttpStatus.FOUND,
       );
     } else {
-      const forum: Forum = new Forum({ ...body, subCategory: subCate });
-      await this.forumService.saveForum(forum);
-      return { message: 'Foro creado exitosamente' };
+      const forum: Forum = new Forum({ ...body, subCategory: subCate, user: user});
+      const savedForum = await this.forumService.saveForum(forum);
+      return { message: 'Foro creado exitosamente', forum: savedForum };
     }
   }
 }

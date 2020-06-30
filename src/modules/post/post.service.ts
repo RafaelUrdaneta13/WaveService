@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
 import { Post } from 'entities/post.entity';
-import { User } from 'entities/user.entity';
+import {
+  paginate,
+  Pagination,
+  IPaginationOptions,
+} from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class PostService {
@@ -12,13 +16,19 @@ export class PostService {
   ) {}
 
   findOne(id: number): Promise<Post> {
-    return this.postsRepository.findOne(id);
+    return this.postsRepository.findOne(id, { relations: ['users'] });
   }
 
-  findAllByForum(id: number): Promise<Post[]> {
-    return this.postsRepository.find({
+  findAllByForum(
+    id: number,
+    options: IPaginationOptions,
+  ): Promise<Pagination<Post>> {
+    return paginate<Post>(this.postsRepository, options, {
       where: { forum: id },
       relations: ['user'],
+      order: {
+        date: 'DESC',
+      },
     });
   }
 
@@ -31,5 +41,13 @@ export class PostService {
 
   savePost(post: Post): Promise<Post> {
     return this.postsRepository.save(post);
+  }
+
+  findPostByUser(id: number, email: string): Promise<Post> {
+    return this.postsRepository.findOne(id, {where: {userEmail: email} });
+  }
+
+  deletePost(post: Post): Promise<Post> {
+    return this.postsRepository.remove(post)
   }
 }

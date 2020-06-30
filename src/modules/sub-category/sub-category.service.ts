@@ -4,6 +4,7 @@ import { SubCategory } from 'entities/subCategory.entity';
 import { Repository, UpdateResult } from 'typeorm';
 import { FavoriteSubCategoryDto } from 'src/dto/favoriteSubCategory.dto';
 import { User } from 'entities/user.entity';
+import { ContentSubcategory } from 'entities/contentSubcategory.entity';
 
 @Injectable()
 export class SubCategoryService {
@@ -50,5 +51,16 @@ export class SubCategoryService {
     return this.subCategoriesRepository.findOne(id, {
       relations: ['contentSubcategories', 'users', 'forums'],
     });
+  }
+
+  savePhoto(id: number, url: string): Promise<UpdateResult> {
+    return this.subCategoriesRepository
+      .createQueryBuilder()
+      .update(ContentSubcategory)
+      .set({
+        imagen: url,
+      })
+      .where('id = :id', { id: id })
+      .execute();
   }
 }

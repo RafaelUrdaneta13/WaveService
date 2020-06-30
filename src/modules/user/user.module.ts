@@ -6,6 +6,7 @@ import { UserService } from './user.service';
 import { AuthModule } from '../auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from 'src/helpers/constants';
+import { UploadImageService } from 'src/helpers/upload-image/upload-image.service';
 @Module({
   imports: [
     forwardRef(() => AuthModule),
@@ -16,7 +17,7 @@ import { jwtConstants } from 'src/helpers/constants';
     }),
   ],
   controllers: [UserController],
-  providers: [UserService],
+  providers: [UserService, UploadImageService],
   exports: [UserService],
 })
 export class UserModule {}

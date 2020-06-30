@@ -5,6 +5,7 @@ import {
   ManyToMany,
   JoinTable,
   ManyToOne,
+  CreateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Forum } from './forum.entity';
@@ -15,21 +16,25 @@ export class Post {
     text,
     forum,
     user,
-  }: { text?: string; forum?: Forum; user?: User } = {}) {
-    (this.text = text), (this.forum = forum), (this.user = user);
+    date,
+  }: { text?: string; forum?: Forum; user?: User; date?: Date } = {}) {
+    (this.text = text),
+      (this.forum = forum),
+      (this.user = user),
+      (this.date = date);
   }
 
   @PrimaryGeneratedColumn()
   id: number;
 
   @ManyToOne(
-    type => Forum,
+    () => Forum,
     forum => forum.posts,
   )
   forum: Forum;
 
   @ManyToOne(
-    type => User,
+    () => User,
     user => user.posts,
   )
   user: User;
@@ -37,10 +42,13 @@ export class Post {
   @Column()
   text: string;
 
+  @CreateDateColumn({ type: 'timestamp' })
+  date: Date;
+
   @Column({ default: false })
   isReported: boolean;
 
-  @ManyToMany(type => User)
+  @ManyToMany(() => User)
   @JoinTable()
   users: User[];
 }

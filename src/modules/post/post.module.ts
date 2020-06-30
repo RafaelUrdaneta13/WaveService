@@ -7,10 +7,11 @@ import { UserModule } from '../user/user.module';
 import { ForumModule } from '../forum/forum.module';
 import { SubCategoryModule } from '../sub-category/sub-category.module';
 import { ForumService } from '../forum/forum.service';
+import { PostGateway } from './post.gateway';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Post]), UserModule,ForumModule],
+  imports: [TypeOrmModule.forFeature([Post]), UserModule, ForumModule],
   controllers: [PostController],
-  providers: [PostService],
+  providers: [PostService, PostGateway],
 })
 export class PostModule {}

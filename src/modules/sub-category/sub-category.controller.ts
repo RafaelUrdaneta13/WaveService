@@ -6,18 +6,24 @@ import {
   Request,
   Patch,
   Body,
+  Post,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { SubCategoryService } from './sub-category.service';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'entities/user.entity';
 import { FavoriteSubCategoryDto } from 'src/dto/favoriteSubCategory.dto';
 import { ForumService } from '../forum/forum.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UploadImageService } from 'src/helpers/upload-image/upload-image.service';
 
 @Controller('sub-category')
 export class SubCategoryController {
   constructor(
     private subCategoryService: SubCategoryService,
     private forumService: ForumService,
+    private uploadImageService: UploadImageService
   ) {}
 
   @UseGuards(AuthGuard('jwt'))
@@ -89,5 +95,16 @@ export class SubCategoryController {
   @Get(':id')
   async findById(@Param('id') id: number) {
     return await this.subCategoryService.findById(id);
+  }
+
+  @Post('photo/upload/:id')
+  @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(@UploadedFile() file, @Param('id') id: number) {
+    const response = await this.uploadImageService.uploadImage(
+      file.buffer.toString('base64'),
+    );
+    await this.subCategoryService.savePhoto(id, response.data.data.url);
+    return { imageUrl: response.data.data.url };
   }
 }

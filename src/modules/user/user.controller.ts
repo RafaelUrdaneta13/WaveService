@@ -18,11 +18,13 @@ import { sha1 } from 'object-hash';
 import { User } from 'entities/user.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import fs = require('fs');
+import { UploadImageService } from 'src/helpers/upload-image/upload-image.service';
 @Controller('user')
 export class UserController {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
+    private uploadImageService: UploadImageService,
   ) {}
 
   @Post('login')
@@ -50,7 +52,7 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file, @Request() { user }: { user: User }) {
-    const response = await this.userService.uploadImage(
+    const response = await this.uploadImageService.uploadImage(
       file.buffer.toString('base64'),
     );
     await this.userService.saveProfilePhoto(user, response.data.data.url);

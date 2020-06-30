@@ -1,6 +1,7 @@
 import { Entity, Column, OneToMany, PrimaryColumn } from 'typeorm';
 import { Post } from './post.entity';
 import { userRole } from 'src/helpers/constants';
+import { Forum } from './forum.entity';
 
 @Entity()
 export class User {
@@ -66,6 +67,12 @@ export class User {
 
   @Column({ default: true })
   isActive: boolean;
+
+  @OneToMany(
+    () => Forum,
+    forum => forum.user,
+  )
+  forums: Forum[];
 
   @OneToMany(
     () => Post,
