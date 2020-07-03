@@ -36,15 +36,4 @@ export class CategoryService {
       relations: ['color', 'contentCategories'],
     });
   }
-
-  savePhoto(id: number, url: string): Promise<UpdateResult> {
-    return this.categoriesRepository
-      .createQueryBuilder()
-      .update(ContentCategory)
-      .set({
-        imagen: url,
-      })
-      .where('id = :id', { id: id })
-      .execute();
-  }
 }

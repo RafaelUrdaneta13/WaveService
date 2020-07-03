@@ -10,6 +10,7 @@ import { ForumModule } from './modules/forum/forum.module';
 import { SubCategoryModule } from './modules/sub-category/sub-category.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { PostModule } from './modules/post/post.module';
+import { ContentCategoryModule } from './modules/content-category/content-category.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PostModule } from './modules/post/post.module';
     ForumModule,
     SubCategoryModule,
     PostModule,
+    ContentCategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
