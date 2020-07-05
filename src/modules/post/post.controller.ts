@@ -50,6 +50,25 @@ export class PostController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('all/forum/:id/user')
+  async findByForumIdAndUser(
+    @Param('id') idForum: number,
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Request() { user }: { user: User },
+  ) {
+    limit = limit > 100 ? 100 : limit;
+    return await this.postService.findAllByUserAndForum(
+      idForum,
+      {
+        page,
+        limit,
+      },
+      user,
+    );
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Post('publish/forum/:id')
   async createPost(
     @Body() body: PostDto,

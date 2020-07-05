@@ -7,6 +7,7 @@ import {
   Pagination,
   IPaginationOptions,
 } from 'nestjs-typeorm-paginate';
+import { User } from 'entities/user.entity';
 
 @Injectable()
 export class PostService {
@@ -32,6 +33,19 @@ export class PostService {
     });
   }
 
+  findAllByUserAndForum(
+    id: number,
+    options: IPaginationOptions,
+    user: User,
+  ): Promise<Pagination<Post>> {
+    return paginate<Post>(this.postsRepository, options, {
+      where: { forum: id, user },
+      order: {
+        date: 'DESC',
+      },
+    });
+  }
+
   findLatestPosts(id: number): Promise<Post[]> {
     return this.postsRepository.find({
       where: { id: MoreThan(id) },
@@ -44,10 +58,10 @@ export class PostService {
   }
 
   findPostByUser(id: number, email: string): Promise<Post> {
-    return this.postsRepository.findOne(id, {where: {userEmail: email} });
+    return this.postsRepository.findOne(id, { where: { userEmail: email } });
   }
 
   deletePost(post: Post): Promise<Post> {
-    return this.postsRepository.remove(post)
+    return this.postsRepository.remove(post);
   }
 }

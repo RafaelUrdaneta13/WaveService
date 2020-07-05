@@ -52,7 +52,7 @@ export class ForumService {
   findByUser(email: string): Promise<Forum[]> {
     return this.forumsRepository
       .createQueryBuilder('forum')
-      .innerJoinAndSelect('forum.users', 'user', 'user.email IN (:userEmail)', {
+      .innerJoin('forum.users', 'user', 'user.email IN (:userEmail)', {
         userEmail: email,
       })
       .getMany();
@@ -78,14 +78,9 @@ export class ForumService {
   findAllWithPostByUser(user: User): Promise<Forum[]> {
     return this.forumsRepository
       .createQueryBuilder('forum')
-      .innerJoinAndSelect(
-        'forum.posts',
-        'post',
-        'post.userEmail IN (:userEmail)',
-        {
-          userEmail: user.email,
-        },
-      )
+      .innerJoin('forum.posts', 'post', 'post.userEmail IN (:userEmail)', {
+        userEmail: user.email,
+      })
       .getMany();
   }
 

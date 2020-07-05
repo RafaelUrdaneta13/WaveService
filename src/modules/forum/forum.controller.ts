@@ -66,9 +66,9 @@ export class ForumController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('user/posts')
-  async findByUserWithPosts(@Request() { user }: { user: User }) {
+  async findByUser(@Request() { user }: { user: User }) {
     return {
-      forums: await this.forumService.findByUserWithPostsSubscribe(user.email),
+      forums: await this.forumService.findByUser(user.email),
     };
   }
 
@@ -77,12 +77,12 @@ export class ForumController {
   async findByUserWithPostNotSubscribe(@Request() { user }: { user: User }) {
     const allForums = await this.forumService.findAllWithPostByUser(user);
     const subscribeForums = await this.forumService.findByUser(user.email);
-    const forumsNotSubscribeWithPost = allForums.filter(
+    const forumsNotSubscribe = allForums.filter(
       forum =>
         !subscribeForums.some(subscribeForum => forum.id === subscribeForum.id),
     );
     return {
-      forums: forumsNotSubscribeWithPost,
+      forums: forumsNotSubscribe,
     };
   }
 
