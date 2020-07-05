@@ -1,17 +1,15 @@
-import { IsNotEmpty, IsUrl } from "class-validator";
+import { IsUrl, IsString, IsNotEmpty } from 'class-validator';
 
 export class ContentCategoryDto {
-    @IsNotEmpty()
-    text: string
+  @IsNotEmpty()
+  @IsString()
+  text: string;
 
-    @IsNotEmpty()
-    title: string
+  @IsNotEmpty()
+  @IsString()
+  title: string;
 
-    @IsUrl()
-    link: string
-    
-    @IsNotEmpty()
-    idCategory: number
-
-    image: string;
+  @IsNotEmpty()
+  @IsUrl()
+  link: string;
 }

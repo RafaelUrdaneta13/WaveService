@@ -3,6 +3,7 @@ import { User } from 'entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ObjectID, UpdateResult } from 'typeorm';
 import axios, { AxiosResponse } from 'axios';
+import { userRole } from "../../helpers/constants";
 
 import FormData = require('form-data');
 
@@ -48,5 +49,16 @@ export class UserService {
       })
       .where('email = :email', { email: user.email })
       .execute();
+  }
+
+  activePremium(email: string): Promise<UpdateResult> {
+    return this.usersRepository
+      .createQueryBuilder()
+      .update(User)
+      .set({
+        role: userRole.PREMIUM
+      })
+      .where('email = :email', { email: email })
+      .execute()
   }
 }

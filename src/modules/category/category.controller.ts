@@ -8,19 +8,26 @@ import {
   UseInterceptors,
   UploadedFile,
   Query,
+  HttpException,
+  HttpStatus,
+  Patch,
+  Body,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'entities/user.entity';
 import { SubCategoryService } from '../sub-category/sub-category.service';
-import { ContentCategoryService } from '../content-category/content-category.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UploadImageService } from 'src/helpers/upload-image/upload-image.service';
+import { Category } from 'entities/category.entity';
+import { CategoryDto } from 'src/dto/category.dto';
 
 @Controller('category')
 export class CategoryController {
   constructor(
     private categoryService: CategoryService,
     private subCategoryService: SubCategoryService,
-    private contentCategoryService: ContentCategoryService
+    private uploadImageService: UploadImageService,
   ) {}
 
   @UseGuards(AuthGuard('jwt'))
@@ -66,15 +73,69 @@ export class CategoryController {
   @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   async findById(@Param('id') id: number) {
-    return await this.categoryService.findById(id);
+    return await this.categoryService.findByIdWithContent(id);
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('content-category/:id')
-  async findContentByCategoryOnlyPositionZero(@Param('id') id: number) {
+  @Patch('disable/:id')
+  async disableCategory(@Param('id') id: number) {
+    const category = await this.categoryService.findByIdWithContent(id);
+    if (!category) {
+      throw new HttpException('La Categoria no existe', HttpStatus.NOT_FOUND);
+    }
+    category.isActive = false;
     return {
-      Content: await (await this.contentCategoryService.findContentByIdCategory(id)).reverse().pop()
-    } 
+      category: await this.categoryService.saveCategory(category),
+    };
+  }
 
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('activate/:id')
+  async activateCategory(@Param('id') id: number) {
+    const category = await this.categoryService.findByIdWithContent(id);
+    if (!category) {
+      throw new HttpException('La Categoria no existe', HttpStatus.NOT_FOUND);
+    }
+    category.isActive = true;
+    return {
+      category: await this.categoryService.saveCategory(category),
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('create')
+  async createCategory(@Body() body: CategoryDto) {
+    const category = new Category({ ...body });
+    const newCategory = await this.categoryService.saveCategory(category);
+    return {
+      category: newCategory,
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('update/:idCategory')
+  async updateCategory(
+    @Body() body: CategoryDto,
+    @Param('idCategory') idCategory: number,
+  ) {
+    const category = await this.categoryService.findById(idCategory);
+    if (!category) {
+      throw new HttpException('La categoria no existe', HttpStatus.NOT_FOUND);
+    }
+    const updateCategory = new Category({ ...category, ...body });
+    return {
+      category: await this.categoryService.saveCategory(updateCategory),
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('photo/upload/:id')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(@UploadedFile() file, @Param('id') id: number) {
+    const response = await this.uploadImageService.uploadImage(
+      file.buffer.toString('base64'),
+    );
+    await this.categoryService.savePhoto(id, response.data.data.url);
+    return { imageUrl: response.data.data.url };
   }
 }

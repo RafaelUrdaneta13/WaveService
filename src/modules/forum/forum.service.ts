@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Forum } from 'entities/forum.entity';
-import { Repository, UpdateResult, Not } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import {
   paginate,
   Pagination,

@@ -15,7 +15,7 @@ export class ContentSubcategory {
   @Column()
   title: string;
 
-  @Column()
+  @Column({ nullable: true })
   imagen: string;
 
   @Column()
@@ -23,4 +23,7 @@ export class ContentSubcategory {
 
   @Column()
   link: string;
+
+  @Column({ default: true })
+  isActive: boolean;
 }
