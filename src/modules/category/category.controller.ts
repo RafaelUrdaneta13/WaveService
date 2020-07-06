@@ -124,13 +124,13 @@ export class CategoryController {
     @Body() body: CategoryDto,
     @Param('idCategory') idCategory: number,
   ) {
-    const category = await this.categoryService.findById(idCategory);
+    let category = await this.categoryService.findById(idCategory);
     if (!category) {
       throw new HttpException('La categoria no existe', HttpStatus.NOT_FOUND);
     }
-    const updateCategory = new Category({ ...category, ...body });
+    category = { ...category, ...body };
     return {
-      category: await this.categoryService.saveCategory(updateCategory),
+      category: await this.categoryService.saveCategory(category),
     };
   }
 

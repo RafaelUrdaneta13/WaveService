@@ -88,14 +88,14 @@ export class ContentCategoryController {
     @Body() body: ContentCategoryDto,
     @Param('idContent') idContent: number,
   ) {
-    const content = await this.contentCategoryService.findById(idContent);
+    let content = await this.contentCategoryService.findById(idContent);
     if (!content) {
       throw new HttpException('El contenido no existe', HttpStatus.NOT_FOUND);
     }
-    const updateContent = new ContentCategory({ ...content, ...body });
+    content = { ...content, ...body };
     return {
       contentCategory: await this.contentCategoryService.saveContentCategory(
-        updateContent,
+        content,
       ),
     };
   }
