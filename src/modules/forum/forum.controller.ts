@@ -21,6 +21,7 @@ import { Forum } from 'entities/forum.entity';
 import { SubCategoryService } from '../sub-category/sub-category.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadImageService } from 'src/helpers/upload-image/upload-image.service';
+import { SubCategory } from 'entities/subCategory.entity';
 
 @Controller('forum')
 export class ForumController {
@@ -32,8 +33,23 @@ export class ForumController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('all')
-  async findAll(@Query('page') page = 1, @Query('limit') limit = 10) {
-    return await this.forumService.findAll({
+  async findAll(
+    @Query('searchTerm') searchTerm,
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('idCategory') idCategory,
+    @Query('idSubcategory') idSubcategory,
+  ) {
+    let subcategories: SubCategory[] = idSubcategory
+      ? [await this.subCategoryService.findById(idSubcategory)]
+      : [];
+    if (!idSubcategory && idCategory) {
+      const response = await this.subCategoryService.findAllByCategory(
+        idCategory,
+      );
+      subcategories = subcategories.concat(response);
+    }
+    return await this.forumService.findAll(subcategories, searchTerm, {
       page,
       limit,
     });

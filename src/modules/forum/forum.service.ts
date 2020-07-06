@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Forum } from 'entities/forum.entity';
-import { Repository, UpdateResult } from 'typeorm';
+import { Repository, UpdateResult, Like, In } from 'typeorm';
 import {
   paginate,
   Pagination,
@@ -9,6 +9,7 @@ import {
 } from 'nestjs-typeorm-paginate';
 import { UserService } from '../user/user.service';
 import { User } from 'entities/user.entity';
+import { SubCategory } from 'entities/subCategory.entity';
 
 @Injectable()
 export class ForumService {
@@ -17,8 +18,37 @@ export class ForumService {
     private forumsRepository: Repository<Forum>,
   ) {}
 
-  findAll(options: IPaginationOptions): Promise<Pagination<Forum>> {
-    return paginate<Forum>(this.forumsRepository, options);
+  findAll(
+    subCategories: SubCategory[],
+    searchTerm: string,
+    options: IPaginationOptions,
+  ): Promise<Pagination<Forum>> {
+    if (searchTerm) {
+      if (subCategories.length > 0) {
+        return paginate<Forum>(this.forumsRepository, options, {
+          relations: ['subCategory'],
+          where: {
+            title: Like(`%${searchTerm}%`),
+            subCategory: In(subCategories.map(subCategory => subCategory.id)),
+          },
+        });
+      }
+      return paginate<Forum>(this.forumsRepository, options, {
+        where: {
+          title: Like(`%${searchTerm}%`),
+        },
+      });
+    } else {
+      if (subCategories.length > 0) {
+        return paginate<Forum>(this.forumsRepository, options, {
+          relations: ['subCategory'],
+          where: {
+            subCategory: In(subCategories.map(subCategory => subCategory.id)),
+          },
+        });
+      }
+      return paginate<Forum>(this.forumsRepository, options);
+    }
   }
 
   findAllBySubCategory(

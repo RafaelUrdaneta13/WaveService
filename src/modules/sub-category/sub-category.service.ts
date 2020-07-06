@@ -43,7 +43,7 @@ export class SubCategoryService {
 
   findById(id: number): Promise<SubCategory> {
     return this.subCategoriesRepository.findOne(id, {
-      relations: ['contentSubcategories', 'users'],
+      relations: ['contentSubcategories', 'users', 'category'],
     });
   }
 

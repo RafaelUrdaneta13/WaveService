@@ -37,6 +37,12 @@ export class CategoryController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('all/content')
+  async findAllWithContent() {
+    return await this.categoryService.findAllWithContent();
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get('favorites')
   async findByUser(@Request() { user }: { user: User }) {
     const categories = await this.categoryService.findAll();
