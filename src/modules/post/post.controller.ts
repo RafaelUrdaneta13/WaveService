@@ -41,12 +41,24 @@ export class PostController {
     @Param('id') idForum: number,
     @Query('page') page = 1,
     @Query('limit') limit = 10,
+    @Request() { user }: { user: User },
   ) {
     limit = limit > 100 ? 100 : limit;
-    return await this.postService.findAllByForum(idForum, {
+    let posts = await this.postService.findAllByForum(idForum, {
       page,
       limit,
     });
+    const items = posts.items.map(post => ({
+      ...post,
+      likes: post.users.length,
+      isLiked: post.users.some(userToFind => userToFind.email === user.email),
+    }));
+    posts = { ...posts, items: items };
+    posts.items.map(post => {
+      delete post.users;
+      delete post.user.password;
+    });
+    return posts;
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -120,6 +132,43 @@ export class PostController {
     return {
       message: 'Dislike succeeded',
     };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('isLike/user/:id')
+  async isLikedByUser(
+    @Param('id') id: number,
+    @Request() { user }: { user: User },
+  ) {
+    const post = await this.postService.findOne(id);
+    if (!post) {
+      throw new HttpException('El post no existe', HttpStatus.NOT_FOUND);
+    }
+    if (post.users.length > 0) {
+      const isLiked = post.users.some(
+        userToFind => userToFind.email === user.email,
+      );
+      if (isLiked) {
+        return {
+          isLike: true,
+        };
+      } else {
+        return {
+          isLike: false,
+        };
+      }
+    } else {
+      return {
+        isLike: false,
+      };
+    }
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('likesCount/:id')
+  async getLikesCountByPost(@Param('id') id: number) {
+    const post = await this.postService.getLikesCountByPost(id);
+    return { post };
   }
 
   @UseGuards(AuthGuard('jwt'))

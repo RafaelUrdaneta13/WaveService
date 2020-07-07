@@ -159,4 +159,12 @@ export class ForumService {
   deleteForum(forum: Forum): Promise<Forum> {
     return this.forumsRepository.remove(forum);
   }
+
+  getSubscribersCountByForum(id: number): Promise<any> {
+    return this.forumsRepository
+      .createQueryBuilder('forum')
+      .loadRelationCountAndMap('forum.subscribers', 'forum.users')
+      .where('forum.id = :id', { id })
+      .getOne();
+  }
 }

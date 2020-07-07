@@ -10,6 +10,7 @@ import {
   Request,
   Query,
   Param,
+  Patch,
 } from '@nestjs/common';
 import { sendEmail } from 'src/helpers/email.service';
 import { LoginDto } from 'src/dto/login.dto';
@@ -24,6 +25,7 @@ import { User } from 'entities/user.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadImageService } from 'src/helpers/upload-image/upload-image.service';
 import { TokenExpiredError } from 'jsonwebtoken';
+import { userRole } from '../../helpers/constants';
 @Controller('user')
 export class UserController {
   constructor(
@@ -127,7 +129,11 @@ export class UserController {
   async register(@Body() body: RegisterDto) {
     const encryptedPass = sha1(body.password);
     body.password = encryptedPass;
-    const user: User = new User({ ...body, birthday: new Date(body.birthday) });
+    const user: User = new User({
+      ...body,
+      birthday: new Date(body.birthday),
+      image: 'https://i.ibb.co/XFrKdNG/4a8bc11da4eb.jpg',
+    });
     const foundUser = await this.userService.findByEmailOrUsername(
       body.email,
       body.userName,
@@ -151,12 +157,52 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('premium/active')
+  @Patch('premium/activate')
   async activatePremium(@Request() { user }: { user: User }) {
     await this.userService.activePremium(user.email);
     const newUser = await this.userService.findOne(user.email);
     return {
       user: newUser,
     };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('register/Admin')
+  async registerAdmin(
+    @Request() { user }: { user: User },
+    @Body() body: RegisterDto,
+  ) {
+    const admin = await this.userService.findByEmailOrUsername(
+      user.email,
+      user.userName,
+    );
+    if (admin.role != userRole.ADMIN) {
+      throw new HttpException(
+        'El usuario no tiene permisos necesarios',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    console.log(admin);
+    const foundUser = await this.userService.findByEmailOrUsername(
+      body.email,
+      body.userName,
+    );
+    if (foundUser) {
+      throw new HttpException(
+        'El email o username ya se encuentra registrado',
+        HttpStatus.FOUND,
+      );
+    }
+    const encryptedPass = sha1(body.password);
+    body.password = encryptedPass;
+    const newUser: User = new User({
+      ...body,
+      birthday: new Date(body.birthday),
+      role: userRole.ADMIN,
+      image: 'https://i.ibb.co/XFrKdNG/4a8bc11da4eb.jpg',
+    });
+    const userCreated = await this.userService.createUser(newUser);
+    delete userCreated.password;
+    return { user: userCreated };
   }
 }

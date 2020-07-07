@@ -191,4 +191,11 @@ export class ForumController {
       return { message: 'Foro creado exitosamente', forum: savedForum };
     }
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('subscribersCount/:id')
+  async getSubscribersCountByForum(@Param('id') id: number) {
+    const forum = await this.forumService.getSubscribersCountByForum(id);
+    return { forum };
+  }
 }

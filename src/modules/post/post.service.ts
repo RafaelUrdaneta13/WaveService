@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
+import { Repository, MoreThan, createQueryBuilder } from 'typeorm';
 import { Post } from 'entities/post.entity';
 import {
   paginate,
@@ -26,7 +26,7 @@ export class PostService {
   ): Promise<Pagination<Post>> {
     return paginate<Post>(this.postsRepository, options, {
       where: { forum: id },
-      relations: ['user'],
+      relations: ['user', 'users'],
       order: {
         date: 'DESC',
       },
@@ -63,5 +63,13 @@ export class PostService {
 
   deletePost(post: Post): Promise<Post> {
     return this.postsRepository.remove(post);
+  }
+
+  getLikesCountByPost(id: number): Promise<any> {
+    return this.postsRepository
+      .createQueryBuilder('post')
+      .loadRelationCountAndMap('post.likes', 'post.users')
+      .where('post.id = :id', { id })
+      .getOne();
   }
 }
