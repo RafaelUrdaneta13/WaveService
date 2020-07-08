@@ -8,10 +8,14 @@ export const sendEmail = async (email: string, url: string) => {
 
   // create reusable transporter object using the default SMTP transport
   const client = nodemailer.createTransport({
-    service: 'SendGrid',
+    service: 'Mailgun',
+    port: 587,
     auth: {
-      user: 'wavemetrosoftware@gmail.com',
-      pass: 'wavemetro123',
+      user: 'postmaster@sandbox5a5ea81d6af94fd98abeac4ae86f3f85.mailgun.org',
+      pass: '7afb549ad28ca9f030a44addb50c9be8-87c34c41-c6887430',
+    },
+    tls: {
+      rejectUnauthorized: false,
     },
   });
 
