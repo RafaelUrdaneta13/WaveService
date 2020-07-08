@@ -7,6 +7,16 @@ export const sendEmail = async (email: string, url: string) => {
   // Generate test SMTP service account from ethereal.email
 
   // create reusable transporter object using the default SMTP transport
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: 'wavemetrosoftware@gmail.com', // generated ethereal user
+      pass: 'wavemetro123', // generated ethereal password
+    },
+  });
+  /*
   const client = nodemailer.createTransport({
     service: 'Mailgun',
     port: 587,
@@ -18,9 +28,9 @@ export const sendEmail = async (email: string, url: string) => {
       rejectUnauthorized: false,
     },
   });
-
+*/
   // send mail with defined transport object
-  const info = await client.sendMail({
+  const info = await transporter.sendMail({
     from: '"Wave App 👻" <wavemetrosoftware@gmail.com>', // sender address
     to: email, // list of receivers
     subject: 'Reset Password ✔', // Subject line
