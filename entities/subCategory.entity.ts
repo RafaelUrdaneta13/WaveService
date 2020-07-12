@@ -14,6 +14,21 @@ import { User } from './user.entity';
 
 @Entity()
 export class SubCategory {
+
+  constructor({
+    name,
+    text,
+    category,
+    image
+  }: {
+    name?: string;
+    text?: string;
+    category?: Category;
+    image?: string;
+  } = {} ) {
+    (this.name = name), (this.text = text), (this.category = category), (this.image = image);
+  }
+
   @PrimaryGeneratedColumn()
   id: number;
 

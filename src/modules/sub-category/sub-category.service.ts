@@ -63,4 +63,10 @@ export class SubCategoryService {
       .where('id = :id', { id: id })
       .execute();
   }
+
+  findByName(name: string): Promise<SubCategory> {
+    return this.subCategoriesRepository.findOne({
+      where: { name: name }
+    });
+  }
 }

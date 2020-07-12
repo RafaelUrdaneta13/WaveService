@@ -36,28 +36,13 @@ export class ContentCategoryController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Patch('disable/:id')
-  async disableContentCategory(@Param('id') id: number) {
+  @Patch('change/status/:id')
+  async changeStatusContentCategory(@Param('id') id: number) {
     const content = await this.contentCategoryService.findById(id);
     if (!content) {
       throw new HttpException('El Contenido no existe', HttpStatus.NOT_FOUND);
     }
-    content.isActive = false;
-    return {
-      contentCategory: await this.contentCategoryService.saveContentCategory(
-        content,
-      ),
-    };
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Patch('activate/:id')
-  async activateContentCategory(@Param('id') id: number) {
-    const content = await this.contentCategoryService.findById(id);
-    if (!content) {
-      throw new HttpException('El Contenido no existe', HttpStatus.NOT_FOUND);
-    }
-    content.isActive = true;
+    content.isActive = !content.isActive;
     return {
       contentCategory: await this.contentCategoryService.saveContentCategory(
         content,

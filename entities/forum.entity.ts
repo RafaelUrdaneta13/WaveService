@@ -10,6 +10,7 @@ import {
 import { SubCategory } from './subCategory.entity';
 import { Post } from './post.entity';
 import { User } from './user.entity';
+import { Category } from './category.entity';
 
 @Entity()
 export class Forum {
@@ -17,7 +18,7 @@ export class Forum {
     title,
     image,
     subCategory,
-    user,
+    user
   }: {
     title?: string;
     image?: string;

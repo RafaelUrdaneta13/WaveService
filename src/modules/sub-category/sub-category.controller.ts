@@ -9,6 +9,8 @@ import {
   Post,
   UseInterceptors,
   UploadedFile,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { SubCategoryService } from './sub-category.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -17,13 +19,18 @@ import { FavoriteSubCategoryDto } from 'src/dto/favoriteSubCategory.dto';
 import { ForumService } from '../forum/forum.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadImageService } from 'src/helpers/upload-image/upload-image.service';
+import { SubCategoryDto } from 'src/dto/subCategory.dto';
+import { CreateSubCategoryDto } from 'src/dto/createSubCategory.dto';
+import { CategoryService } from '../category/category.service';
+import { SubCategory } from 'entities/subCategory.entity';
 
 @Controller('sub-category')
 export class SubCategoryController {
   constructor(
     private subCategoryService: SubCategoryService,
     private forumService: ForumService,
-    private uploadImageService: UploadImageService
+    private categoryService: CategoryService,
+    private uploadImageService: UploadImageService,
   ) {}
 
   @UseGuards(AuthGuard('jwt'))
@@ -97,6 +104,25 @@ export class SubCategoryController {
     return await this.subCategoryService.findById(id);
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @Post('update/:idsubCategory')
+  async updateSubCategory(
+    @Body() body: SubCategoryDto,
+    @Param('idsubCategory') idsubCategory: number,
+  ) {
+    let subCategory = await this.subCategoryService.findById(idsubCategory);
+    if (!subCategory) {
+      throw new HttpException(
+        'La subcategoria no existe',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    subCategory = { ...subCategory, ...body };
+    return {
+      subCategory: await this.subCategoryService.saveSubCategory(subCategory),
+    };
+  } 
+
   @Post('photo/upload/:id')
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('file'))
@@ -106,5 +132,35 @@ export class SubCategoryController {
     );
     await this.subCategoryService.savePhoto(id, response.data.data.url);
     return { imageUrl: response.data.data.url };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('change/status/:id')
+  async chageStatusSubCategory(@Param('id') id:number) {
+    const subCategory = await this.subCategoryService.findById(id)
+    if (!subCategory) {
+      throw new HttpException('La Subcategoria no existe', HttpStatus.NOT_FOUND);
+    }
+    subCategory.isActive = !subCategory.isActive
+    return {
+      subCategory: await this.subCategoryService.saveSubCategory(subCategory),
+      message: 'Status Changed'
+    }
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('admin/create')
+  async createSubCategory(@Body() body:CreateSubCategoryDto) {
+    const category = await this.categoryService.findById(body.category)
+    if (!category) {
+      throw new HttpException('La Categoria no existe', HttpStatus.NOT_FOUND);
+    }
+    const exist = await this.subCategoryService.findByName(body.name)
+    if(exist) {
+      throw new HttpException('La Subcategoria ya existe', HttpStatus.FOUND);
+    }
+    const subCategory= new SubCategory({... body, category: category, image: 'https://i.ibb.co/XFrKdNG/4a8bc11da4eb.jpg'}) 
+    const savedSubCategory = await this.subCategoryService.saveSubCategory(subCategory);
+    return { message: 'Subcategoria creada exitosamente', SubCategory: savedSubCategory };
   }
 }

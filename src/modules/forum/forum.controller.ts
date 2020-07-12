@@ -17,11 +17,13 @@ import { AuthGuard } from '@nestjs/passport';
 import { ForumService } from './forum.service';
 import { User } from 'entities/user.entity';
 import { ForumDto } from 'src/dto/forum.dto';
+import { UpdateForumDto } from 'src/dto/updateForum.dto';
 import { Forum } from 'entities/forum.entity';
 import { SubCategoryService } from '../sub-category/sub-category.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadImageService } from 'src/helpers/upload-image/upload-image.service';
 import { SubCategory } from 'entities/subCategory.entity';
+import { CreateAdminForumDto } from 'src/dto/createForumAdmin.dto';
 
 @Controller('forum')
 export class ForumController {
@@ -84,7 +86,7 @@ export class ForumController {
   @Get('user/posts')
   async findByUser(@Request() { user }: { user: User }) {
     return {
-      forums: await this.forumService.findByUser(user.email),
+      forums: await this.forumService.findByUserWithPostsSubscribe(user.email),
     };
   }
 
@@ -197,5 +199,51 @@ export class ForumController {
   async getSubscribersCountByForum(@Param('id') id: number) {
     const forum = await this.forumService.getSubscribersCountByForum(id);
     return { forum };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('change/status/:id')
+  async changeStatusForum(@Param('id') id: number) {
+    const forum = await this.forumService.findById(id);
+    if (!this.findById) {
+      throw new HttpException('El foro no existe', HttpStatus.NOT_FOUND);
+    }
+    forum.isActive = !forum.isActive;
+    return {
+      category: await this.forumService.saveForum(forum),
+    }
+  }
+  
+  @UseGuards(AuthGuard('jwt'))
+  @Post('update/:idForum')
+  async updateForum(
+    @Body() body: UpdateForumDto,
+    @Param('idForum') idForum: number,
+  ) {
+    let forum = await this.forumService.findById(idForum);
+    if (!forum) {
+      throw new HttpException('El foro no existe', HttpStatus.NOT_FOUND);
+    }
+    forum = { ...forum, ...body };
+    return {
+      forum: await this.forumService.saveForum(forum),
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('admin/create')
+  async createForumByAdmin(@Body() body: CreateAdminForumDto, @Request() { user }: { user: User } ) {
+    const subCate = await this.subCategoryService.findById(body.subcategory)
+    if (!subCate) {
+      throw new HttpException('La categoria no existe', HttpStatus.NOT_FOUND);
+    }
+    const exist = await this.forumService.findByName(body.title)
+    if (exist) {
+      throw new HttpException('El foro existe', HttpStatus.FOUND);
+    }
+    const forum = new Forum({...body, subCategory: subCate, user: user})
+    return {
+      forum: await this.forumService.saveForum(forum), message: 'El foro a sido creado Satisfactoriamente'
+    }
   }
 }

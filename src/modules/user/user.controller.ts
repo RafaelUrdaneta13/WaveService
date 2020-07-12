@@ -69,6 +69,7 @@ export class UserController {
       await sendEmail(
         user.email,
         `https://waveapp-f4960.firebaseapp.com/reset/password?token=${token}`,
+        user.firstName,
       );
       return {
         message: 'Correo Enviado',
@@ -86,11 +87,14 @@ export class UserController {
     try {
       this.jwtService.verify(token);
       const payload: any = this.jwtService.decode(token, { json: true });
-      const encryptedPass = sha1(payload.password);
-      const user = await this.userService.findOne(payload.email);
+      const encryptedPass = sha1(body.password);
+      const user = await this.userService.findByEmailAndPassword({
+        email: payload.email,
+        password: payload.password,
+      });
       if (user) {
         user.password = encryptedPass;
-        this.userService.createUser(user);
+        await this.userService.createUser(user);
         delete user.password;
         return {
           accessToken: this.jwtService.sign({
