@@ -8,9 +8,15 @@ import { ForumModule } from '../forum/forum.module';
 import { SubCategoryModule } from '../sub-category/sub-category.module';
 import { ForumService } from '../forum/forum.service';
 import { PostGateway } from './post.gateway';
+import { SubscriberModule } from '../subscriber/subscriber.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Post]), UserModule, ForumModule],
+  imports: [
+    TypeOrmModule.forFeature([Post]),
+    UserModule,
+    ForumModule,
+    SubscriberModule,
+  ],
   controllers: [PostController],
   providers: [PostService, PostGateway],
 })

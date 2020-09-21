@@ -11,6 +11,7 @@ import { SubCategoryModule } from './modules/sub-category/sub-category.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { PostModule } from './modules/post/post.module';
 import { ContentCategoryModule } from './modules/content-category/content-category.module';
+import { SubscriberModule } from './modules/subscriber/subscriber.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ContentCategoryModule } from './modules/content-category/content-catego
     SubCategoryModule,
     PostModule,
     ContentCategoryModule,
+    SubscriberModule,
   ],
   controllers: [AppController],
   providers: [AppService],

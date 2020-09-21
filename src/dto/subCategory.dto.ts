@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsBoolean } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class SubCategoryDto {
   @IsString()
@@ -8,8 +8,4 @@ export class SubCategoryDto {
   @IsString()
   @IsNotEmpty()
   text: string;
-
-  @IsBoolean()
-  @IsNotEmpty()
-  isActive: boolean;
 }

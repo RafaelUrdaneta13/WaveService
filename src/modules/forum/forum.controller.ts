@@ -24,6 +24,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadImageService } from 'src/helpers/upload-image/upload-image.service';
 import { SubCategory } from 'entities/subCategory.entity';
 import { CreateAdminForumDto } from 'src/dto/createForumAdmin.dto';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
+import { userRole } from 'src/helpers/constants';
+import { listenerCount } from 'process';
 
 @Controller('forum')
 export class ForumController {
@@ -76,9 +80,33 @@ export class ForumController {
   async findByUserAndSubCategory(
     @Request() { user }: { user: User },
     @Param('id') id,
+    @Query('pageFavorites') pageFavorites = 1,
+    @Query('pageNotFavorites') pageNotFavorites = 1,
+    @Query('limit') limit = 100,
   ) {
+    limit = limit > 100 ? 100 : limit;
+    const subscribeForums = await this.forumService.findByUserAndSubCategory(
+      user.email,
+      id,
+      {
+        page: pageFavorites,
+        limit,
+      },
+    );
+
+    const forumsNotSubscribe = await this.forumService.findNotFavoriteByUserAndSubCategory(
+      id,
+      user,
+      {
+        page: pageNotFavorites,
+        limit,
+      },
+    );
+
+    console.log(forumsNotSubscribe);
     return {
-      forums: await this.forumService.findByUserAndSubCategory(user.email, id),
+      favoriteForums: subscribeForums,
+      notFavoriteForums: forumsNotSubscribe,
     };
   }
 
@@ -106,11 +134,13 @@ export class ForumController {
 
   @UseGuards(AuthGuard('jwt'))
   @Patch('like/:id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(userRole.NORMAL, userRole.PREMIUM)
   async likeForum(
     @Param('id') id: number,
     @Request() { user }: { user: User },
   ) {
-    const forum = await this.forumService.findById(id);
+    let forum = await this.forumService.findByIdWithUsers(id);
     if (!forum) {
       throw new HttpException('El foro no existe', HttpStatus.NOT_FOUND);
     }
@@ -120,18 +150,23 @@ export class ForumController {
       forum.users = [user];
     }
     await this.forumService.saveForum(forum);
+    forum = await this.forumService.findByIdWithUsers(id);
+    delete forum.users;
     return {
       message: 'Like succeeded',
+      forum,
     };
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Patch('dislike/:id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(userRole.NORMAL, userRole.PREMIUM)
   async dislikeForum(
     @Param('id') idForum: number,
     @Request() { user }: { user: User },
   ) {
-    const forum = await this.forumService.findById(idForum);
+    let forum = await this.forumService.findByIdWithUsers(idForum);
     if (!forum) {
       throw new HttpException('El foro no existe', HttpStatus.NOT_FOUND);
     }
@@ -139,8 +174,11 @@ export class ForumController {
       (userIn: User) => userIn.email !== user.email,
     );
     await this.forumService.saveForum(forum);
+    forum = await this.forumService.findByIdWithUsers(idForum);
+    delete forum.users;
     return {
       message: 'Dislike succeeded',
+      forum,
     };
   }
 
@@ -154,8 +192,14 @@ export class ForumController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get(':id')
-  async findById(@Param('id') id: number) {
-    return { forum: await this.forumService.findById(id) };
+  async findById(@Param('id') id: number, @Request() { user }: { user: User }) {
+    let forum: any = await this.forumService.findByIdWithUsers(id);
+    forum = {
+      ...forum,
+      isLiked: forum.users.some(userToFind => userToFind.email === user.email),
+    };
+    delete forum.users;
+    return { forum };
   }
 
   @Post('photo/upload/:id')
@@ -185,11 +229,14 @@ export class ForumController {
       );
     } else {
       const forum: Forum = new Forum({
+        image: 'https://i.ibb.co/XFrKdNG/4a8bc11da4eb.jpg',
         ...body,
         subCategory: subCate,
         user: user,
       });
       const savedForum = await this.forumService.saveForum(forum);
+      delete savedForum.user;
+      delete savedForum.subCategory;
       return { message: 'Foro creado exitosamente', forum: savedForum };
     }
   }
@@ -201,8 +248,9 @@ export class ForumController {
     return { forum };
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Patch('change/status/:id')
+  @Roles(userRole.ADMIN, userRole.SUPER_ADMIN)
   async changeStatusForum(@Param('id') id: number) {
     const forum = await this.forumService.findById(id);
     if (!this.findById) {
@@ -210,12 +258,13 @@ export class ForumController {
     }
     forum.isActive = !forum.isActive;
     return {
-      category: await this.forumService.saveForum(forum),
-    }
+      forum: await this.forumService.saveForum(forum),
+    };
   }
-  
-  @UseGuards(AuthGuard('jwt'))
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('update/:idForum')
+  @Roles(userRole.ADMIN, userRole.SUPER_ADMIN)
   async updateForum(
     @Body() body: UpdateForumDto,
     @Param('idForum') idForum: number,
@@ -232,18 +281,28 @@ export class ForumController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('admin/create')
-  async createForumByAdmin(@Body() body: CreateAdminForumDto, @Request() { user }: { user: User } ) {
-    const subCate = await this.subCategoryService.findById(body.subcategory)
+  async createForumByAdmin(
+    @Body() body: CreateAdminForumDto,
+    @Request() { user }: { user: User },
+  ) {
+    const subCate = await this.subCategoryService.findById(body.subcategory);
     if (!subCate) {
-      throw new HttpException('La categoria no existe', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        'La subcategoria no existe',
+        HttpStatus.NOT_FOUND,
+      );
     }
-    const exist = await this.forumService.findByName(body.title)
+    const exist = await this.forumService.findByName(body.title);
     if (exist) {
-      throw new HttpException('El foro existe', HttpStatus.FOUND);
+      throw new HttpException('El foro ya existe', HttpStatus.FOUND);
     }
-    const forum = new Forum({...body, subCategory: subCate, user: user})
+    let forum = new Forum({ ...body, subCategory: subCate, user: user });
+    forum = await this.forumService.saveForum(forum);
+    delete forum.user;
+    delete forum.subCategory;
     return {
-      forum: await this.forumService.saveForum(forum), message: 'El foro a sido creado Satisfactoriamente'
-    }
+      message: 'El foro ha sido creado Satisfactoriamente',
+      forum,
+    };
   }
 }

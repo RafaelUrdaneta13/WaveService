@@ -19,6 +19,9 @@ import { PostDto } from 'src/dto/post.dto';
 import { UserService } from '../user/user.service';
 import { Post as PostEntity } from '../../../entities/post.entity';
 import { ForumService } from '../forum/forum.service';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
+import { userRole } from 'src/helpers/constants';
 
 @Controller('post')
 export class PostController {
@@ -52,6 +55,32 @@ export class PostController {
       ...post,
       likes: post.users.length,
       isLiked: post.users.some(userToFind => userToFind.email === user.email),
+    }));
+    posts = { ...posts, items: items };
+    posts.items.map(post => {
+      delete post.users;
+      delete post.user.password;
+    });
+    return posts;
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Roles(userRole.ADMIN, userRole.SUPER_ADMIN)
+  @Get('admin/all/forum/:id')
+  async findByForumIdForAdmin(
+    @Param('id') idForum: number,
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Request() { user }: { user: User },
+  ) {
+    limit = limit > 100 ? 100 : limit;
+    let posts = await this.postService.findAllByForum(idForum, {
+      page,
+      limit,
+    });
+    const items = posts.items.map(post => ({
+      ...post,
+      likes: post.users.length,
     }));
     posts = { ...posts, items: items };
     posts.items.map(post => {
@@ -97,10 +126,11 @@ export class PostController {
     return { message: 'Post guardado exitosamente' };
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(userRole.NORMAL, userRole.PREMIUM)
   @Patch('like/:id')
   async likePost(@Param('id') id: number, @Request() { user }: { user: User }) {
-    const post = await this.postService.findOne(id);
+    const post = await this.postService.findOneWithUsers(id);
     if (!post) {
       throw new HttpException('El post no existe', HttpStatus.NOT_FOUND);
     }
@@ -115,13 +145,14 @@ export class PostController {
     };
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(userRole.NORMAL, userRole.PREMIUM)
   @Patch('dislike/:id')
   async dislikePost(
     @Param('id') idPost: number,
     @Request() { user }: { user: User },
   ) {
-    const post = await this.postService.findOne(idPost);
+    const post = await this.postService.findOneWithUsers(idPost);
     if (!post) {
       throw new HttpException('El post no existe', HttpStatus.NOT_FOUND);
     }
@@ -132,36 +163,6 @@ export class PostController {
     return {
       message: 'Dislike succeeded',
     };
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Get('isLike/user/:id')
-  async isLikedByUser(
-    @Param('id') id: number,
-    @Request() { user }: { user: User },
-  ) {
-    const post = await this.postService.findOne(id);
-    if (!post) {
-      throw new HttpException('El post no existe', HttpStatus.NOT_FOUND);
-    }
-    if (post.users.length > 0) {
-      const isLiked = post.users.some(
-        userToFind => userToFind.email === user.email,
-      );
-      if (isLiked) {
-        return {
-          isLike: true,
-        };
-      } else {
-        return {
-          isLike: false,
-        };
-      }
-    } else {
-      return {
-        isLike: false,
-      };
-    }
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -184,6 +185,21 @@ export class PostController {
     await this.postService.deletePost(post);
     return {
       message: 'Post Deleted',
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Roles(userRole.ADMIN, userRole.SUPER_ADMIN)
+  @Patch('admin/report/:id')
+  async reportPost(@Param('id') id: number) {
+    let post = await this.postService.findOne(id);
+    if (!post) {
+      throw new HttpException('El post no existe', HttpStatus.NOT_FOUND);
+    }
+    post.isReported = !post.isReported;
+    post = await this.postService.savePost(post);
+    return {
+      post,
     };
   }
 }

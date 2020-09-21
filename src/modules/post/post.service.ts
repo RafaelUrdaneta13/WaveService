@@ -17,6 +17,10 @@ export class PostService {
   ) {}
 
   findOne(id: number): Promise<Post> {
+    return this.postsRepository.findOne(id);
+  }
+
+  findOneWithUsers(id: number): Promise<Post> {
     return this.postsRepository.findOne(id, { relations: ['users'] });
   }
 

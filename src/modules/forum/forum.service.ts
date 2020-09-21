@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Forum } from 'entities/forum.entity';
-import { Repository, UpdateResult, Like, In } from 'typeorm';
+import { Repository, UpdateResult, Like, In, Not } from 'typeorm';
 import {
   paginate,
   Pagination,
@@ -34,6 +34,7 @@ export class ForumService {
         });
       }
       return paginate<Forum>(this.forumsRepository, options, {
+        relations: ['subCategory'],
         where: {
           title: Like(`%${searchTerm}%`),
         },
@@ -47,7 +48,9 @@ export class ForumService {
           },
         });
       }
-      return paginate<Forum>(this.forumsRepository, options);
+      return paginate<Forum>(this.forumsRepository, options, {
+        relations: ['subCategory'],
+      });
     }
   }
 
@@ -60,23 +63,54 @@ export class ForumService {
     });
   }
 
+  findByIdWithUsers(id: number): Promise<Forum> {
+    return this.forumsRepository
+      .createQueryBuilder('forum')
+      .leftJoinAndSelect('forum.users', 'user')
+      .innerJoinAndSelect('forum.subCategory', 'subCategory')
+      .loadRelationCountAndMap('forum.subscribers', 'forum.users')
+      .where('forum.id = :id', { id })
+      .getOne();
+  }
+
   findById(id: number): Promise<Forum> {
-    return this.forumsRepository.findOne(id, {
-      relations: ['subCategory', 'users'],
-    });
+    return this.forumsRepository.findOne(id);
   }
 
   findByUserAndSubCategory(
     email: string,
     subCategoryId: number,
-  ): Promise<Forum[]> {
-    return this.forumsRepository
-      .createQueryBuilder('forum')
-      .innerJoinAndSelect('forum.users', 'user', 'user.email IN (:userEmail)', {
+    options: IPaginationOptions,
+  ): Promise<Pagination<Forum>> {
+    const queryBuilder = this.forumsRepository.createQueryBuilder('forum');
+    queryBuilder
+      .innerJoin('forum.users', 'user', 'user.email IN (:userEmail)', {
         userEmail: email,
       })
-      .where('forum.subCategory = :subCategoryId', { subCategoryId })
+      .where('forum.subCategory = :subCategoryId', { subCategoryId });
+    return paginate<Forum>(queryBuilder, options);
+  }
+
+  findNotFavoriteByUserAndSubCategory(
+    subCategoryId: number,
+    user: User,
+    options: IPaginationOptions,
+  ): Promise<Pagination<Forum>> {
+    const foroQb = this.forumsRepository
+      .createQueryBuilder('foro')
+      .select('foro.id')
+      .where('foro.subCategory = :subCategoryId', { subCategoryId })
+      .innerJoin('foro.users', 'user', 'user.email IN (:userEmail)', {
+        userEmail: user.email,
+      });
+
+    const queryBuilder = this.forumsRepository.createQueryBuilder('foroNot');
+    queryBuilder
+      .where('foroNot.subCategory = :subCategoryId', { subCategoryId })
+      .andWhere('foroNot.id NOT IN (' + foroQb.getQuery() + ')')
+      .setParameters(foroQb.getParameters())
       .getMany();
+    return paginate<Forum>(queryBuilder, options);
   }
 
   findByUser(email: string): Promise<Forum[]> {
@@ -91,7 +125,7 @@ export class ForumService {
   findByUserWithPostsSubscribe(email: string): Promise<Forum[]> {
     return this.forumsRepository
       .createQueryBuilder('forum')
-      .innerJoinAndSelect('forum.users', 'user', 'user.email IN (:userEmail)', {
+      .innerJoin('forum.users', 'user', 'user.email IN (:userEmail)', {
         userEmail: email,
       })
       .leftJoinAndSelect(

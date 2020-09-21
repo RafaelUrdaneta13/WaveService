@@ -23,6 +23,10 @@ import { SubCategoryDto } from 'src/dto/subCategory.dto';
 import { CreateSubCategoryDto } from 'src/dto/createSubCategory.dto';
 import { CategoryService } from '../category/category.service';
 import { SubCategory } from 'entities/subCategory.entity';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { userRole } from 'src/helpers/constants';
+import { Roles } from 'src/decorators/roles.decorator';
+import { Forum } from 'entities/forum.entity';
 
 @Controller('sub-category')
 export class SubCategoryController {
@@ -49,7 +53,8 @@ export class SubCategoryController {
     };
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(userRole.NORMAL, userRole.PREMIUM)
   @Patch('add/favorite')
   async addAsFavorite(
     @Request() { user }: { user: User },
@@ -70,7 +75,8 @@ export class SubCategoryController {
     }));
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(userRole.NORMAL, userRole.PREMIUM)
   @Patch('dislike/:id')
   async dislikeSubcategory(
     @Param('id') idSubcategory: number,
@@ -98,14 +104,9 @@ export class SubCategoryController {
     });
   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @Get(':id')
-  async findById(@Param('id') id: number) {
-    return await this.subCategoryService.findById(id);
-  }
-
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('update/:idsubCategory')
+  @Roles(userRole.ADMIN, userRole.SUPER_ADMIN)
   async updateSubCategory(
     @Body() body: SubCategoryDto,
     @Param('idsubCategory') idsubCategory: number,
@@ -121,10 +122,11 @@ export class SubCategoryController {
     return {
       subCategory: await this.subCategoryService.saveSubCategory(subCategory),
     };
-  } 
+  }
 
   @Post('photo/upload/:id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(userRole.ADMIN, userRole.SUPER_ADMIN)
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file, @Param('id') id: number) {
     const response = await this.uploadImageService.uploadImage(
@@ -134,33 +136,77 @@ export class SubCategoryController {
     return { imageUrl: response.data.data.url };
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Patch('change/status/:id')
-  async chageStatusSubCategory(@Param('id') id:number) {
-    const subCategory = await this.subCategoryService.findById(id)
+  @Roles(userRole.ADMIN, userRole.SUPER_ADMIN)
+  async chageStatusSubCategory(@Param('id') id: number) {
+    const subCategory = await this.subCategoryService.findByIdWithForums(id);
     if (!subCategory) {
-      throw new HttpException('La Subcategoria no existe', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        'La Subcategoria no existe',
+        HttpStatus.NOT_FOUND,
+      );
     }
-    subCategory.isActive = !subCategory.isActive
-    return {
-      subCategory: await this.subCategoryService.saveSubCategory(subCategory),
-      message: 'Status Changed'
-    }
+    subCategory.isActive = !subCategory.isActive;
+    let promises: Promise<any>[] = [];
+    promises.push(this.subCategoryService.saveSubCategory(subCategory));
+    promises = promises.concat(
+      subCategory.forums.map((forum: Forum) => {
+        const disabledForum: Forum = {
+          ...forum,
+          isActive: subCategory.isActive,
+        };
+        return this.forumService.saveForum(disabledForum);
+      }),
+    );
+    return Promise.all(promises).then(([savedSubCategory]) => {
+      delete savedSubCategory.users;
+      delete savedSubCategory.forums;
+      return {
+        subCategory: savedSubCategory,
+        message: 'Status Changed',
+      };
+    });
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('admin/create')
-  async createSubCategory(@Body() body:CreateSubCategoryDto) {
-    const category = await this.categoryService.findById(body.category)
+  @Roles(userRole.ADMIN, userRole.SUPER_ADMIN)
+  async createSubCategory(@Body() body: CreateSubCategoryDto) {
+    const category = await this.categoryService.findById(body.category);
     if (!category) {
       throw new HttpException('La Categoria no existe', HttpStatus.NOT_FOUND);
     }
-    const exist = await this.subCategoryService.findByName(body.name)
-    if(exist) {
+    const exist = await this.subCategoryService.findByName(body.name);
+    if (exist) {
       throw new HttpException('La Subcategoria ya existe', HttpStatus.FOUND);
     }
-    const subCategory= new SubCategory({... body, category: category, image: 'https://i.ibb.co/XFrKdNG/4a8bc11da4eb.jpg'}) 
-    const savedSubCategory = await this.subCategoryService.saveSubCategory(subCategory);
-    return { message: 'Subcategoria creada exitosamente', SubCategory: savedSubCategory };
+    const subCategory = new SubCategory({
+      ...body,
+      category: category,
+      image: 'https://i.ibb.co/XFrKdNG/4a8bc11da4eb.jpg',
+    });
+    const savedSubCategory = await this.subCategoryService.saveSubCategory(
+      subCategory,
+    );
+    return {
+      message: 'Subcategoria creada exitosamente',
+      SubCategory: savedSubCategory,
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':id')
+  async findById(@Param('id') id: number, @Request() { user }: { user: User }) {
+    let subcategory: any = await this.subCategoryService.findById(id);
+    subcategory = {
+      ...subcategory,
+      isLiked: subcategory.users.some(
+        userToFind => userToFind.email === user.email,
+      ),
+    };
+    delete subcategory.users;
+    delete subcategory.category;
+    return { subcategory };
   }
 }

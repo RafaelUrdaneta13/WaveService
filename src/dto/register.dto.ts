@@ -1,5 +1,11 @@
 import { userRole } from 'src/helpers/constants';
-import { IsDate, IsEmail, IsNotEmpty, Length, IsBoolean, } from 'class-validator';
+import {
+  IsDate,
+  IsEmail,
+  IsNotEmpty,
+  Length,
+  IsBoolean,
+} from 'class-validator';
 export class RegisterDto {
   @IsNotEmpty()
   firstName: string;
@@ -13,7 +19,7 @@ export class RegisterDto {
   @IsEmail()
   email: string;
 
-  @Length(6, 11)
+  @Length(8, 30)
   password: string;
 
   @IsNotEmpty()

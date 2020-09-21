@@ -4,7 +4,6 @@ import { SubCategory } from 'entities/subCategory.entity';
 import { Repository, UpdateResult } from 'typeorm';
 import { FavoriteSubCategoryDto } from 'src/dto/favoriteSubCategory.dto';
 import { User } from 'entities/user.entity';
-import { ContentSubcategory } from 'entities/contentSubcategory.entity';
 
 @Injectable()
 export class SubCategoryService {
@@ -16,7 +15,6 @@ export class SubCategoryService {
   findAllByCategory(id: number): Promise<SubCategory[]> {
     return this.subCategoriesRepository.find({
       where: { category: id },
-      relations: ['contentSubcategories'],
     });
   }
 
@@ -43,22 +41,22 @@ export class SubCategoryService {
 
   findById(id: number): Promise<SubCategory> {
     return this.subCategoriesRepository.findOne(id, {
-      relations: ['contentSubcategories', 'users', 'category'],
+      relations: ['users', 'category'],
     });
   }
 
   findByIdWithForums(id: number): Promise<SubCategory> {
     return this.subCategoriesRepository.findOne(id, {
-      relations: ['contentSubcategories', 'users', 'forums'],
+      relations: ['users', 'forums'],
     });
   }
 
   savePhoto(id: number, url: string): Promise<UpdateResult> {
     return this.subCategoriesRepository
       .createQueryBuilder()
-      .update(ContentSubcategory)
+      .update(SubCategory)
       .set({
-        imagen: url,
+        image: url,
       })
       .where('id = :id', { id: id })
       .execute();
@@ -66,7 +64,7 @@ export class SubCategoryService {
 
   findByName(name: string): Promise<SubCategory> {
     return this.subCategoriesRepository.findOne({
-      where: { name: name }
+      where: { name: name },
     });
   }
 }
